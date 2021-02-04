@@ -10,6 +10,12 @@
 *.dll
 *.dylib
 
+# VS code
+.vscode/
+
+# MESON
+builddir/
+
 # Qt-es
 object_script.*.Release
 object_script.*.Debug
