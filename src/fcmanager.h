@@ -1,8 +1,8 @@
-#ifndef SERVER_H
-#define SERVER_H
+#ifndef FCMANAGER_H
+#define FCMANAGER_H
 
 #include <QTcpServer>
-#include "server_thread.h"
+#include "fcm_thread.h"
 
 class FCManager : public QTcpServer
 {
@@ -19,4 +19,4 @@ protected:
 
 };
 
-#endif // MYSERVER_H
+#endif

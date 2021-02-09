@@ -1,5 +1,10 @@
 #include <QCoreApplication>
-#include "server.h"
+#include "fcmanager.h"
+
+//FIXME: make cmd for manager
+//FIXME: add tests
+//FIXME: add JSON for communication between modules
+//          and compression
 
 int main(int argc, char *argv[])
 {

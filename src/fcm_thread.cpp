@@ -1,4 +1,4 @@
-#include "server_thread.h"
+#include "fcm_thread.h"
 
 FcmThread::FcmThread(qintptr ID, QObject *parent) :
     QThread(parent)
@@ -17,13 +17,14 @@ void FcmThread::run()
     if(!socket->setSocketDescriptor(this->socketDescriptor))
     {
         // something's wrong, we just emit a signal
+        // FIXME: make a handler for errors, make a slot and connect this signal
         emit error(socket->error());
         return;
     }
 
     // connect socket and signal
-    // note - Qt::DirectConnection is used because it's multithreaded
-    //        This makes the slot to be invoked immediately, when the signal is emitted.
+    // Qt::DirectConnection is used because it's multithreaded
+    // this makes the slot to be invoked immediately, when the signal is emitted.
 
     connect(socket, SIGNAL(readyRead()), this, SLOT(readyRead()), Qt::DirectConnection);
     connect(socket, SIGNAL(disconnected()), this, SLOT(disconnected()));

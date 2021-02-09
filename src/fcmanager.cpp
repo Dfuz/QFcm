@@ -1,5 +1,5 @@
-#include "server.h"
-#include "server_thread.h"
+#include "fcmanager.h"
+#include "fcm_thread.h"
 
 FCManager::FCManager(QObject *parent) :
     QTcpServer(parent)

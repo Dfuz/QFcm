@@ -1,5 +1,5 @@
-#ifndef MYTHREAD_H
-#define MYTHREAD_H
+#ifndef FCMTHREAD_H
+#define FCMTHREAD_H
 
 #include <QThread>
 #include <QTcpSocket>

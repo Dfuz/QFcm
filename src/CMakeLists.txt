@@ -12,11 +12,11 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(SOURCES
-    main.cpp
-    server_thread.cpp
-    server_thread.h
-    server.cpp
-    server.h)
+    fcmanager.cpp
+    fcmanager.h
+    fcm_thread.cpp
+    fcm_thread.h
+    main.cpp)
 
 set(QT_MODULES
     Qt${QT_VERSION_MAJOR}::Core
