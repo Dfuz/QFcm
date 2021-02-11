@@ -10,13 +10,13 @@ class FCManager : public QTcpServer
 public:
     explicit FCManager(QObject *parent = 0);
     void startServer();
-signals:
-
-public slots:
 
 protected:
     void incomingConnection(qintptr socketDescriptor);
 
+signals:
+
+public slots:
 };
 
 #endif

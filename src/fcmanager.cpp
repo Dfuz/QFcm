@@ -8,9 +8,9 @@ FCManager::FCManager(QObject *parent) :
 
 void FCManager::startServer()
 {
-    int port = 1234;
+    int port = 1234; // magic number FIXME: make cfg file (maybe JSON)
 
-    if(!this->listen(QHostAddress::Any, port))
+    if(!this->listen(QHostAddress::LocalHost, port))
     {
         qDebug() << "Could not start server";
     }
@@ -22,12 +22,10 @@ void FCManager::startServer()
 
 void FCManager::incomingConnection(qintptr socketDescriptor)
 {
-    // We have a new connection
     qDebug() << socketDescriptor << " Connecting...";
 
     FcmThread *thread = new FcmThread(socketDescriptor, this);
 
-    // connect signal/slot
     // once a thread is not needed, it will be beleted later
     connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
 

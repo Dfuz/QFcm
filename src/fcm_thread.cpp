@@ -29,6 +29,7 @@ void FcmThread::run()
     connect(socket, SIGNAL(readyRead()), this, SLOT(readyRead()), Qt::DirectConnection);
     connect(socket, SIGNAL(disconnected()), this, SLOT(disconnected()));
 
+
     // We'll have multiple clients, we want to know which is which
     qDebug() << socketDescriptor << " Client connected";
 
