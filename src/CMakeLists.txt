@@ -18,12 +18,12 @@ set(SOURCES
     fcm_thread.h
     main.cpp)
 
+find_package(QT NAMES Qt6 Qt5 COMPONENTS Core REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Network REQUIRED)
+
 set(QT_MODULES
     Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Network)
-
-find_package(QT NAMES Qt6 Qt5 COMPONENTS Core REQUIRED)
-find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Network REQUIRED)
 
 add_executable(QFcm
     ${SOURCES})

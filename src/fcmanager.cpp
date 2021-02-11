@@ -31,3 +31,34 @@ void FCManager::incomingConnection(qintptr socketDescriptor)
 
     thread->start();
 }
+
+inline bool readJsonFile(QIODevice &device, QSettings::SettingsMap &map)
+{
+    QByteArray readedBytes = device.readAll();
+    QJsonDocument resJson(QJsonDocument::fromJson(readedBytes));
+    if (resJson == null) {
+        //TODO: handle error
+        return false;
+    }
+    if (!resJson.isObject()) {
+        qInfo() << resJson << " is not Object (wrong format)";
+        return false;
+    }
+    map = resJson.object().toVariantMap();
+    return true;
+}
+
+inline bool writeJsonFile(QIODevice &device, const QSettings::SettingsMap &map)
+{
+    auto resJsonObj = QJsonObject::fromVariantMap(map);
+    QJsonDocument resJson(resJsonObj);
+    device.write(resJson.toJson());
+}
+
+void FCManager::readConfig(QString path)
+{
+    const QSettings::Format JsonFormat = QSettings::registerFormat("json", readJsonFile, writeJsonFile);
+    QSettings settings(path, JsonFormat);
+
+    
+}
