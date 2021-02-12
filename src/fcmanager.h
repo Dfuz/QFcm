@@ -2,6 +2,11 @@
 #define FCMANAGER_H
 
 #include <QTcpServer>
+#include <QSettings>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QFile>
+
 #include "fcm_thread.h"
 
 /**
@@ -13,12 +18,25 @@ class FCManager : public QTcpServer
 {
     Q_OBJECT
 public:
+    QString settings_path{"conf.json"};
+
     explicit FCManager(QObject *parent = 0);
     void readConfig(QString path);
     void startServer();
 
+    int port() {return _port;}
+    QHostAddress addr() {return _addr;}
+    int max_number_of_agents() {return _max_number_of_agents;}
+
 protected:
     void incomingConnection(qintptr socketDescriptor);
+
+private:
+    int _port;
+    QHostAddress _addr;
+    int _max_number_of_agents;
+
+    int _curr_number_of_agents = 0;
 
 signals:
 

@@ -1,5 +1,6 @@
 #include "fcmanager.h"
 #include "fcm_thread.h"
+#include "utils.h"
 
 FCManager::FCManager(QObject *parent) :
     QTcpServer(parent)
@@ -32,33 +33,18 @@ void FCManager::incomingConnection(qintptr socketDescriptor)
     thread->start();
 }
 
-inline bool readJsonFile(QIODevice &device, QSettings::SettingsMap &map)
-{
-    QByteArray readedBytes = device.readAll();
-    QJsonDocument resJson(QJsonDocument::fromJson(readedBytes));
-    if (resJson == null) {
-        //TODO: handle error
-        return false;
-    }
-    if (!resJson.isObject()) {
-        qInfo() << resJson << " is not Object (wrong format)";
-        return false;
-    }
-    map = resJson.object().toVariantMap();
-    return true;
-}
-
-inline bool writeJsonFile(QIODevice &device, const QSettings::SettingsMap &map)
-{
-    auto resJsonObj = QJsonObject::fromVariantMap(map);
-    QJsonDocument resJson(resJsonObj);
-    device.write(resJson.toJson());
-}
-
 void FCManager::readConfig(QString path)
 {
-    const QSettings::Format JsonFormat = QSettings::registerFormat("json", readJsonFile, writeJsonFile);
-    QSettings settings(path, JsonFormat);
+    QSettings settings(path, Utils::JsonFormat);
 
-    
+    settings_path = settings.fileName();
+
+    _port = settings.value("port", 1234).toInt();
+    if (settings.value("port").isNull()) settings.setValue("port", _port);
+
+    _addr = QHostAddress{settings.value("address", "127.0.0.1").toString()};
+    if (settings.value("address").isNull()) settings.setValue("address", _addr.toString());
+
+    _max_number_of_agents = settings.value("max_agents", 4).toInt();
+    if (settings.value("max_agents").isNull()) settings.setValue("max_agents", _max_number_of_agents);
 }
