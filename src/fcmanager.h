@@ -21,7 +21,6 @@ public:
     QString settings_path{"conf.json"};
 
     explicit FCManager(QObject *parent = 0);
-    void readConfig(QString path);
     void startServer();
 
     int port() {return _port;}
@@ -32,6 +31,7 @@ protected:
     void incomingConnection(qintptr socketDescriptor);
 
 private:
+    void readConfig();
     int _port;
     QHostAddress _addr;
     int _max_number_of_agents;
