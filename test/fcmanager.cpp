@@ -41,7 +41,7 @@ private slots:
         manager.settings_path = file.fileName();
         manager.readConfig();
 
-        QCOMPARE(manager.addr(), QHostAddress::AnyIPv4);
+        QCOMPARE(manager.addr(), QHostAddress{QHostAddress::AnyIPv4});
         QCOMPARE(manager.port(), 4000);
         QCOMPARE(manager.max_number_of_agents(), 10);
 
