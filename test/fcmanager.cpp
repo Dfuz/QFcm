@@ -11,7 +11,7 @@ private slots:
     void JsonFormatTest()
     {
         QEXPECT_FAIL("", "As should be", Continue);
-        QCOMPARE(Utils::JsonFormat, QSettings::FormatError);
+        QCOMPARE(Utils::JsonFormat, QSettings::InvalidFormat);
     }
 
     void settingsNoFile()
@@ -23,7 +23,7 @@ private slots:
 
         QVERIFY(file.exists());
 
-        QCOMPARE(manager.addr(), QHostAddress::LocalHost);
+        QCOMPARE(manager.addr(), QHostAddress{QHostAddress::LocalHost});
         QCOMPARE(manager.port(), 1234);
         QCOMPARE(manager.max_number_of_agents(), 4);
     }
