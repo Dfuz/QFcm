@@ -46,12 +46,12 @@ void FCManager::readConfig()
 
     settings_path = settings.fileName();
 
-    _port = settings.value("port", 1234).toInt();
-    if (settings.value("port").isNull()) settings.setValue("port", _port);
+    if (settings.value("port").isNull()) settings.setValue("port", 1234);
+    _port = settings.value("port").toInt();
 
-    _addr = QHostAddress{settings.value("address", "127.0.0.1").toString()};
-    if (settings.value("address").isNull()) settings.setValue("address", _addr.toString());
+    if (settings.value("address").isNull()) settings.setValue("address", "127.0.0.1");
+    _addr = QHostAddress{settings.value("address").toString()};
 
-    _max_number_of_agents = settings.value("max_agents", 4).toInt();
-    if (settings.value("max_agents").isNull()) settings.setValue("max_agents", _max_number_of_agents);
+    if (settings.value("max_agents").isNull()) settings.setValue("max_agents", 4);
+    _max_number_of_agents = settings.value("max_agents").toInt();
 }

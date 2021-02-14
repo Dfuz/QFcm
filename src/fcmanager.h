@@ -19,19 +19,20 @@ class FCManager : public QTcpServer
     Q_OBJECT
 public:
     QString settings_path{"conf.json"};
+    void readConfig();
 
     explicit FCManager(QObject *parent = 0);
     void startServer();
-
+//TO_REMOVE
     int port() {return _port;}
     QHostAddress addr() {return _addr;}
     int max_number_of_agents() {return _max_number_of_agents;}
+//_________
 
 protected:
     void incomingConnection(qintptr socketDescriptor);
 
 private:
-    void readConfig();
     int _port;
     QHostAddress _addr;
     int _max_number_of_agents;

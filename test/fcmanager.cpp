@@ -17,7 +17,7 @@ private slots:
     void settingsNoFile()
     {
         FCManager manager{};
-        manager.readConfig("conf.json");
+        manager.readConfig();
 
         QFile file{manager.settings_path};
 
@@ -38,7 +38,8 @@ private slots:
         file.close();
 
         FCManager manager{};
-        manager.readConfig(file.fileName());
+        manager.settings_path = file.fileName();
+        manager.readConfig();
 
         QCOMPARE(manager.addr(), QHostAddress::AnyIPv4);
         QCOMPARE(manager.port(), 4000);
