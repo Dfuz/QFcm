@@ -5,39 +5,56 @@
 FCManager::FCManager(QObject *parent) :
     QTcpServer(parent)
 {
+    QObject::connect(&pollingRate, &QTimer::timeout, this, &FCManager::startPolling);
 }
 
 void FCManager::startServer()
 {
     readConfig();
 
-    if(!this->listen(_addr, _port))
+    if(!this->listen(addr, port))
     {
-        qDebug() << "Could not start server";
+        qDebug() << "Не удалось запустить сервер";
     }
     else
     {
-        qDebug() << "Listening to port " << _port << "...";
+        qDebug() << "Прослушивается порт " << port << "...";
+        pollingRate.start(timeOut);
     }
 }
 
 void FCManager::incomingConnection(qintptr socketDescriptor)
 {
-    if (_curr_number_of_agents >= _max_number_of_agents) {
-        qInfo()<<"Too much agents";
+    if (currNumberOfAgents >= maxNumberOfAgents) {
+        qInfo() << "Слишком много агентов";
         return;
     }
 
-    qDebug() << socketDescriptor << " Connecting...";
+    qDebug() << socketDescriptor << " Подключение...";
 
     FcmThread *thread = new FcmThread(socketDescriptor, this);
 
-    // once a thread is not needed, it will be beleted later
+    // когда поток завершится, его объект удалится
     connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
 
     thread->start();
     
-    _curr_number_of_agents++;
+    currNumberOfAgents++;
+}
+
+inline std::chrono::milliseconds parseTime(const QString& input)
+{
+    std::chrono::milliseconds time{0};
+
+    QRegularExpression ms{"[0-9]+ms"},
+                       s{"[0-9]+s"},
+                       min{"[0-9]+m"},
+                       hour{"[0-9]+h"};
+    time += hours{hour.match(input).captured().right(1).toInt()};
+    time += minutes{min.match(input).captured().right(1).toInt()};
+    time += seconds{s.match(input).captured().right(1).toInt()};
+    time += milliseconds{ms.match(input).captured().right(2).toInt()};
+    return time;
 }
 
 void FCManager::readConfig()
@@ -46,12 +63,25 @@ void FCManager::readConfig()
 
     settings_path = settings.fileName();
 
-    if (settings.value("port").isNull()) settings.setValue("port", 1234);
-    _port = settings.value("port").toInt();
+    if (settings.value("port").isNull())
+        settings.setValue("port", 1234);
+    port = settings.value("port").toInt();
 
-    if (settings.value("address").isNull()) settings.setValue("address", "127.0.0.1");
-    _addr = QHostAddress{settings.value("address").toString()};
+    if (settings.value("address").isNull())
+        settings.setValue("address", "127.0.0.1");
+    addr = QHostAddress{settings.value("address").toString()};
 
-    if (settings.value("max_agents").isNull()) settings.setValue("max_agents", 4);
-    _max_number_of_agents = settings.value("max_agents").toInt();
+    if (settings.value("max_agents").isNull())
+        settings.setValue("max_agents", 4);
+    maxNumberOfAgents = settings.value("max_agents").toInt();
+
+    if (settings.value("polling_rate").isNull())
+        settings.setValue("polling_rate", "1m");
+    timeOut = parseTime(settings.value("polling_rate").toString());
+}
+
+
+void FCManager::startPolling()
+{
+    return;
 }

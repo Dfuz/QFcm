@@ -6,42 +6,50 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QFile>
+#include <QTimer>
+#include <QRegularExpression>
+#include <QStringView>
+#include <chrono>
 
 #include "fcm_thread.h"
+
+using namespace std::chrono;
 
 /**
  * TODO: 
  *  конфигурация ip, port, число подключений и тд...
  */
 
-class FCManager : public QTcpServer
+class FCManager final : public QTcpServer
 {
     Q_OBJECT
 public:
+    explicit FCManager(QObject *parent = 0);
+
     QString settings_path{"conf.json"};
     void readConfig();
-
-    explicit FCManager(QObject *parent = 0);
     void startServer();
 //TO_REMOVE
-    int port() {return _port;}
-    QHostAddress addr() {return _addr;}
-    int max_number_of_agents() {return _max_number_of_agents;}
+    int getPort() {return port;}
+    QHostAddress getAddr() {return addr;}
+    int get_max_number_of_agents() {return maxNumberOfAgents;}
 //_________
 
 protected:
     void incomingConnection(qintptr socketDescriptor);
 
 private:
-    int _port;
-    QHostAddress _addr;
-    int _max_number_of_agents;
-
-    int _curr_number_of_agents = 0;
+    QHostAddress addr{QHostAddress::Null};
+    std::chrono::milliseconds timeOut{0};
+    QTimer pollingRate{this};
+    int maxNumberOfAgents{0};
+    int currNumberOfAgents{0};
+    int port{0};
 
 signals:
 
-public slots:
+private slots:
+    void startPolling();
 };
 
 #endif

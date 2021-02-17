@@ -5,6 +5,7 @@
 #include <QIODevice>
 #include <QJsonObject>
 #include <QJsonDocument>
+#include <QDebug>
 
 namespace Utils {
 
@@ -14,7 +15,7 @@ inline bool readJsonFile(QIODevice &device, QSettings::SettingsMap &map)
     QJsonDocument resJson = QJsonDocument::fromJson(readedBytes);
     if (resJson.isNull()) {
         //TODO: handle error
-        qWarning()<<"got null";
+        qWarning() << " got null";
         return false;
     }
     if (!resJson.isObject()) {
@@ -33,7 +34,7 @@ inline bool writeJsonFile(QIODevice &device, const QSettings::SettingsMap &map)
     if (written == -1) {
         return false;
     } else {
-        qInfo()<<"written "<<written<<" bytes";
+        qInfo() << "written " << written << " bytes";
         return true;
     }
 }

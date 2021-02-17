@@ -25,7 +25,7 @@ private slots:
 
         QCOMPARE(manager.addr(), QHostAddress{QHostAddress::LocalHost});
         QCOMPARE(manager.port(), 1234);
-        QCOMPARE(manager.max_number_of_agents(), 4);
+        QCOMPARE(manager.get_max_number_of_agents(), 4);
     }
 
     void settingsFile()
@@ -43,7 +43,7 @@ private slots:
 
         QCOMPARE(manager.addr(), QHostAddress{QHostAddress::AnyIPv4});
         QCOMPARE(manager.port(), 4000);
-        QCOMPARE(manager.max_number_of_agents(), 10);
+        QCOMPARE(manager.get_max_number_of_agents(), 10);
 
         QFile::remove(file.fileName());
     }

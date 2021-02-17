@@ -8,16 +8,14 @@ FcmThread::FcmThread(qintptr ID, QObject *parent) :
 
 void FcmThread::run()
 {
-    // thread starts here
-    qDebug() << " Thread started!";
+    qDebug() << "Поток запущен!";
 
     socket = new QTcpSocket();
 
-    // set the ID
     if(!socket->setSocketDescriptor(this->socketDescriptor))
     {
-        // something's wrong, we just emit a signal
-        // FIXME: make a handler for errors, make a slot and connect this signal
+        // что-то пошло не так, объект потока вырабатывает сигнал ошибки
+        // FIXME: сделать обработчик этой ошибки
         emit error(socket->error());
         return;
     }
@@ -25,7 +23,6 @@ void FcmThread::run()
     // connect socket and signal
     // Qt::DirectConnection is used because it's multithreaded
     // this makes the slot to be invoked immediately, when the signal is emitted.
-
     connect(socket, SIGNAL(readyRead()), this, SLOT(readyRead()), Qt::DirectConnection);
     connect(socket, SIGNAL(disconnected()), this, SLOT(disconnected()));
 
