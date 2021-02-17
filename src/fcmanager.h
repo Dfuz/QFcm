@@ -8,7 +8,6 @@
 #include <QFile>
 #include <QTimer>
 #include <QRegularExpression>
-#include <QStringView>
 #include <chrono>
 
 #include "fcm_thread.h"

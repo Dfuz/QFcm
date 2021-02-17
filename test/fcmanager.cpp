@@ -23,8 +23,8 @@ private slots:
 
         QVERIFY(file.exists());
 
-        QCOMPARE(manager.addr(), QHostAddress{QHostAddress::LocalHost});
-        QCOMPARE(manager.port(), 1234);
+        QCOMPARE(manager.getAddr(), QHostAddress{QHostAddress::LocalHost});
+        QCOMPARE(manager.getPort(), 1234);
         QCOMPARE(manager.get_max_number_of_agents(), 4);
     }
 
@@ -41,8 +41,8 @@ private slots:
         manager.settings_path = file.fileName();
         manager.readConfig();
 
-        QCOMPARE(manager.addr(), QHostAddress{QHostAddress::AnyIPv4});
-        QCOMPARE(manager.port(), 4000);
+        QCOMPARE(manager.getAddr(), QHostAddress{QHostAddress::AnyIPv4});
+        QCOMPARE(manager.getPort(), 4000);
         QCOMPARE(manager.get_max_number_of_agents(), 10);
 
         QFile::remove(file.fileName());
