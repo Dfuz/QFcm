@@ -32,6 +32,7 @@ public:
     int getPort() {return port;}
     QHostAddress getAddr() {return addr;}
     int get_max_number_of_agents() {return maxNumberOfAgents;}
+    std::chrono::milliseconds getTimeOut() {return timeOut;}
 //_________
 
 protected:

@@ -50,10 +50,11 @@ inline std::chrono::milliseconds parseTime(const QString& input)
                        s{"[0-9]+s"},
                        min{"[0-9]+m"},
                        hour{"[0-9]+h"};
-    time += hours{hour.match(input).captured().right(1).toInt()};
-    time += minutes{min.match(input).captured().right(1).toInt()};
-    time += seconds{s.match(input).captured().right(1).toInt()};
-    time += milliseconds{ms.match(input).captured().right(2).toInt()};
+
+    time += hours{hour.match(input).captured().left(1).toInt()};
+    time += minutes{min.match(input).captured().left(1).toInt()};
+    time += seconds{s.match(input).captured().left(1).toInt()};
+    time += milliseconds{ms.match(input).captured().left(2).toInt()};
     return time;
 }
 

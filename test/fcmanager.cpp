@@ -16,16 +16,17 @@ private slots:
 
     void settingsNoFile()
     {
+        if (QFile::exists("conf.json")) QFile::remove("conf.json");
+
         FCManager manager{};
         manager.readConfig();
 
-        QFile file{manager.settings_path};
-
-        QVERIFY(file.exists());
+        QVERIFY(QFile::exists(manager.settings_path));
 
         QCOMPARE(manager.getAddr(), QHostAddress{QHostAddress::LocalHost});
         QCOMPARE(manager.getPort(), 1234);
         QCOMPARE(manager.get_max_number_of_agents(), 4);
+        QCOMPARE(manager.getTimeOut(), std::chrono::milliseconds{0} + std::chrono::minutes{1});
     }
 
     void settingsFile()
@@ -33,7 +34,7 @@ private slots:
         QFile file{"conf.json"};
         if (file.exists()) file.open(QIODevice::Truncate | QIODevice::WriteOnly);
 
-        const auto DATA = R"({"address":"0.0.0.0", "max_agents":10, "port":4000})";
+        const auto DATA = R"({"address":"0.0.0.0", "max_agents":10, "port":4000, "polling_rate":"1m1s"})";
         QVERIFY(file.write(DATA) != -1);
         file.close();
 
@@ -44,6 +45,7 @@ private slots:
         QCOMPARE(manager.getAddr(), QHostAddress{QHostAddress::AnyIPv4});
         QCOMPARE(manager.getPort(), 4000);
         QCOMPARE(manager.get_max_number_of_agents(), 10);
+        QCOMPARE(manager.getTimeOut(), std::chrono::milliseconds{0} + std::chrono::minutes{1} + std::chrono::seconds{1});
 
         QFile::remove(file.fileName());
     }
