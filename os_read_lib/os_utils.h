@@ -5,16 +5,39 @@
 #error "curenntly unsupported"
 #endif
 
-#include <utils.h>
+//#include <utils.h>
+#include <tuple>
 #include <stdexcept>
 #include <QMap>
 #include <QObject>
 #include <type_traits>
 #include <QProcess>
 #include <QTimer>
+#include <QLocale>
+#include <QDebug>
 
 namespace OS_UTILS
 {
+
+/*!
+ * \brief The PS_STRUCT struct - цпу и память в процентах по всем процессам
+ */
+struct PS_STRUCT
+{
+    QString user;
+    QString command;
+    float cpu;
+    float mem;
+};
+
+struct FS_STRUCT
+{
+    size_t total;
+    size_t used;
+};
+
+typedef QMap<QString, FS_STRUCT> FSMAP;
+typedef QMap<uint, PS_STRUCT> PSMAP;
 
 struct OS_STATUS
 {
@@ -27,30 +50,6 @@ struct OS_STATUS
     float MemoryTotal;
     float MemoryUsed;
 
-//    QString to_json();
-};
-
-/*!
- * \brief The PS_STRUCT struct - цпу и память в процентах по всем процессам
- */
-struct PS_STRUCT
-{
-    QString user;
-    int cpu;
-    int mem;
-};
-
-struct FS_STRUCT
-{
-    size_t total;
-    size_t used;
-};
-
-typedef QMap<QString, FS_STRUCT> FSMAP;
-typedef QMap<QString, PS_STRUCT> PSMAP;
-
-struct OS_STATUS_FULL : public OS_STATUS
-{
     FSMAP allFs;
     PSMAP allPs;
 };
@@ -59,20 +58,13 @@ struct OS_STATUS_FULL : public OS_STATUS
   \class OS_EVENTS
   \brief класс для вытягивания данных OS (пока только линукс)
  */
-template<bool full = false>
 class OS_EVENTS : public QObject
 {
-    typedef typename std::conditional<full, OS_STATUS_FULL, OS_STATUS>::type STATUS;
-
     Q_OBJECT
 public:
     explicit OS_EVENTS(QObject *parent = nullptr);
 
-    void setTimer(int timer = 1000)
-    {
-        evTimer.callOnTimeout([&]() {emit pulledOSStatus(pullOSStatus());});
-        evTimer.start(timer);
-    }
+    void setTimer(int timer = 1000);
 
     void stopTimer() {evTimer.stop();};
 
@@ -80,24 +72,24 @@ public:
      * \brief pullOSStatus - Вытягивает статуи системы
      * \return Статус системы
      */
-    static STATUS pullOSStatus()
+    static OS_STATUS pullOSStatus()
     {
         const auto [allFs, TotalFSSize, UsedFSSize] = getFs();
-        const auto [allCpu, cpuLoad, MemoryTotal, MemoryUsed, psCount] = getPs();
+        const auto [allPs, cpuLoad, MemoryTotal, MemoryUsed, psCount] = getPs();
         return {
-            TotalFSSize,
-            UsedFSSize,
-            psCount,
-            cpuLoad,
-            MemoryTotal,
-            MemoryUsed,
-            allCpu,
-            allFs
+            .TotalFSSize = TotalFSSize,
+            .UsedFSSize = UsedFSSize,
+            .cpuLoad = cpuLoad,
+            .psCount = psCount,
+            .MemoryTotal = MemoryTotal,
+            .MemoryUsed = MemoryUsed,
+            .allFs = allFs,
+            .allPs = allPs
         };
     }
 
 signals:
-    void pulledOSStatus(STATUS);
+    void pulledOSStatus(OS_STATUS);
 
 private:
     QTimer evTimer{this};
@@ -115,5 +107,6 @@ private:
 };
 
 }
+
 
 #endif // OS_UTILS_H

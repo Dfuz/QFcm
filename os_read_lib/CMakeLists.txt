@@ -11,3 +11,9 @@ add_library(os_utils
     ${OS_LIB_SOURCES})
 
 target_link_libraries(os_utils ${QT_MODULES})
+
+add_executable(os_test
+    os_test_main.cpp
+    ${OS_LIB_HEADERS})
+
+target_link_libraries(os_test os_utils)
