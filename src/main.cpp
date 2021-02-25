@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
 
-    FCManager server;
+    FCManager server(&a);
     server.startServer();
 
     return a.exec();

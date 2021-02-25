@@ -2,30 +2,34 @@
 #include "fcm_thread.h"
 #include "utils.h"
 
-FCManager::FCManager(QObject *parent) :
-    QTcpServer(parent)
+FCManager::FCManager(QCoreApplication *app, QObject *parent) :
+    QTcpServer(parent),
+    eventLoop(app)
 {
     QObject::connect(&pollingRate, &QTimer::timeout, this, &FCManager::startPolling);
 }
 
-void FCManager::startServer()
+bool FCManager::startServer()
 {
     readConfig();
+    if (eventLoop == nullptr) return false;
 
-    if(!this->listen(addr, port))
+    if(!this->listen(config.addr, config.port))
     {
         qDebug() << "Не удалось запустить сервер";
     }
     else
     {
-        qDebug() << "Прослушивается порт " << port << "...";
-        pollingRate.start(timeOut);
+        qDebug() << "Прослушивается порт " << config.port << "...";
+        pollingRate.start(config.timeOut);
     }
+
+    return true;
 }
 
 void FCManager::incomingConnection(qintptr socketDescriptor)
 {
-    if (currNumberOfAgents >= maxNumberOfAgents) {
+    if (currNumberOfAgents >= config.maxNumberOfAgents) {
         qInfo() << "Слишком много агентов";
         return;
     }
@@ -66,19 +70,19 @@ void FCManager::readConfig()
 
     if (settings.value("port").isNull())
         settings.setValue("port", 1234);
-    port = settings.value("port").toInt();
+    config.port = settings.value("port").toInt();
 
     if (settings.value("address").isNull())
         settings.setValue("address", "127.0.0.1");
-    addr = QHostAddress{settings.value("address").toString()};
+    config.addr = QHostAddress{settings.value("address").toString()};
 
     if (settings.value("max_agents").isNull())
         settings.setValue("max_agents", 4);
-    maxNumberOfAgents = settings.value("max_agents").toInt();
+    config.maxNumberOfAgents = settings.value("max_agents").toInt();
 
     if (settings.value("polling_rate").isNull())
         settings.setValue("polling_rate", "1m");
-    timeOut = parseTime(settings.value("polling_rate").toString());
+    config.timeOut = parseTime(settings.value("polling_rate").toString());
 }
 
 

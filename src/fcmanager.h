@@ -1,6 +1,7 @@
 #ifndef FCMANAGER_H
 #define FCMANAGER_H
 
+#include <QCoreApplication>
 #include <QTcpServer>
 #include <QSettings>
 #include <QJsonDocument>
@@ -19,32 +20,36 @@ using namespace std::chrono;
  *  конфигурация ip, port, число подключений и тд...
  */
 
+struct FCConfig
+{
+    QHostAddress addr{QHostAddress::Null};
+    std::chrono::milliseconds timeOut{0};
+    int maxNumberOfAgents{0};
+    int port{0};
+};
+
 class FCManager final : public QTcpServer
 {
     Q_OBJECT
 public:
-    explicit FCManager(QObject *parent = 0);
+    explicit FCManager(QCoreApplication *, QObject *parent = 0);
 
     QString settings_path{"conf.json"};
     void readConfig();
-    void startServer();
-//TO_REMOVE
-    int getPort() {return port;}
-    QHostAddress getAddr() {return addr;}
-    int get_max_number_of_agents() {return maxNumberOfAgents;}
-    std::chrono::milliseconds getTimeOut() {return timeOut;}
+    bool startServer();
+
+//TESTS
+    FCConfig getConfig() {return config;}
 //_________
 
 protected:
     void incomingConnection(qintptr socketDescriptor);
 
 private:
-    QHostAddress addr{QHostAddress::Null};
-    std::chrono::milliseconds timeOut{0};
+    QCoreApplication *eventLoop;
+    FCConfig config;
     QTimer pollingRate{this};
-    int maxNumberOfAgents{0};
     int currNumberOfAgents{0};
-    int port{0};
 
 signals:
 
