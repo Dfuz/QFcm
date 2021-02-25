@@ -1,7 +1,14 @@
 #ifndef OS_UTILS_H
 #define OS_UTILS_H
 
-#ifndef __linux
+#ifdef __linux
+#include <linux/sysinfo.h>
+#include <sys/sysinfo.h>
+
+#include <proc/readproc.h>
+
+#include <libmount/libmount.h>
+#else
 #error "curenntly unsupported"
 #endif
 
@@ -26,9 +33,19 @@ struct PS_STRUCT
 {
     QString user;
     QString command;
-    float cpu;
-    float mem;
+    uint cpu;
+    long mem;
 };
+
+QDebug operator<<(QDebug debug, const OS_UTILS::PS_STRUCT &ps)
+{
+    QDebugStateSaver saver(debug);
+    debug.space()<<"user: "<<ps.user;
+    debug.space()<<"command: "<<ps.command;
+    debug.space()<<"cpu: "<<ps.cpu;
+    debug.space()<<"mem: "<<ps.mem;
+    return debug;
+}
 
 struct FS_STRUCT
 {
@@ -44,11 +61,11 @@ struct OS_STATUS
     size_t TotalFSSize;
     size_t UsedFSSize;
 
-    float cpuLoad;
-    int psCount;
+    ulong cpuLoad;
+    ushort psCount;
 
-    float MemoryTotal;
-    float MemoryUsed;
+    ulong MemoryTotal;
+    ulong MemoryFree;
 
     FSMAP allFs;
     PSMAP allPs;
@@ -74,15 +91,39 @@ public:
      */
     static OS_STATUS pullOSStatus()
     {
-        const auto [allFs, TotalFSSize, UsedFSSize] = getFs();
-        const auto [allPs, cpuLoad, MemoryTotal, MemoryUsed, psCount] = getPs();
+        struct sysinfo si;
+        if (sysinfo(&si) == -1)
+            throw std::runtime_error("failed to read sysinfo()");
+
+        auto procs = readproctab(PROC_FILLUSR | PROC_FILLSTAT | PROC_FILLSTATUS | PROC_FILLCOM | PROC_FILLMEM);
+        if (procs == NULL)
+            throw std::runtime_error("failed to read procs");
+
+        PSMAP allPs{};
+        for(int i = 0; procs[i] != NULL; ++i)
+            allPs.insert(procs[i]->tid, {
+                             QString{procs[i]->ruser},
+                             QString{procs[i]->cmd},
+                             procs[i]->pcpu,    //FIXME: count cpu by ->starttime/utime... mb...
+                             procs[i]->size
+                         });
+
+        //TODO: get FS
+        size_t TotalFSSize = 0, UsedFSSize = 0;
+        FSMAP allFs{};
+        //TODO: read fs info from here
+        qDebug()<<_PATH_MOUNTED;
+        qDebug()<<allPs;
+
         return {
             .TotalFSSize = TotalFSSize,
             .UsedFSSize = UsedFSSize,
-            .cpuLoad = cpuLoad,
-            .psCount = psCount,
-            .MemoryTotal = MemoryTotal,
-            .MemoryUsed = MemoryUsed,
+
+            .cpuLoad = si.loads[0],
+            .psCount = si.procs,
+            .MemoryTotal = si.totalram,
+            .MemoryFree = si.freeram,
+
             .allFs = allFs,
             .allPs = allPs
         };
@@ -93,20 +134,8 @@ signals:
 
 private:
     QTimer evTimer{this};
-
-    /*!
-     * \brief getFs - файловая система
-     * \return [Map<имя, фс данные> всего доступно, использовано]
-     */
-    static std::tuple<FSMAP, size_t, size_t> getFs();
-    /*!
-     * \brief getPs - процессы/цпу
-     * \return [Map<имя, даные процесса>, загрузка цпу в %, всего памяти, использовано памяти, кол-во процессов]
-     */
-    static std::tuple<PSMAP, float, float, float, int> getPs();
 };
 
 }
-
 
 #endif // OS_UTILS_H
