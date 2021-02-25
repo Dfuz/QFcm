@@ -3,8 +3,8 @@
 
 int main()
 {
-    OS_UTILS::OS_EVENTS::pullOSStatus();
-    OS_UTILS::OS_EVENTS::pullOSStatus();
-    OS_UTILS::OS_EVENTS::pullOSStatus();
+    qDebug()<<OS_UTILS::OS_EVENTS::pullOSStatus();
+//    qDebug()<<OS_UTILS::OS_EVENTS::pullOSStatus();
+//    qDebug()<<OS_UTILS::OS_EVENTS::pullOSStatus();
     return 0;
 }

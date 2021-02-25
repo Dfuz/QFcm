@@ -7,7 +7,7 @@
 
 #include <proc/readproc.h>
 
-#include <libmount/libmount.h>
+#include <sys/statfs.h>
 #else
 #error "curenntly unsupported"
 #endif
@@ -17,6 +17,7 @@
 #include <stdexcept>
 #include <QMap>
 #include <QObject>
+#include <QFile>
 #include <type_traits>
 #include <QProcess>
 #include <QTimer>
@@ -37,20 +38,14 @@ struct PS_STRUCT
     long mem;
 };
 
-QDebug operator<<(QDebug debug, const OS_UTILS::PS_STRUCT &ps)
-{
-    QDebugStateSaver saver(debug);
-    debug.space()<<"user: "<<ps.user;
-    debug.space()<<"command: "<<ps.command;
-    debug.space()<<"cpu: "<<ps.cpu;
-    debug.space()<<"mem: "<<ps.mem;
-    return debug;
-}
-
+/*!
+ * \brief The FS_STRUCT struct - тип память по всем файл системам
+ */
 struct FS_STRUCT
 {
-    size_t total;
-    size_t used;
+    QString type;
+    ulong total;
+    ulong free;
 };
 
 typedef QMap<QString, FS_STRUCT> FSMAP;
@@ -59,7 +54,7 @@ typedef QMap<uint, PS_STRUCT> PSMAP;
 struct OS_STATUS
 {
     size_t TotalFSSize;
-    size_t UsedFSSize;
+    size_t FreeFSSize;
 
     ulong cpuLoad;
     ushort psCount;
@@ -89,45 +84,7 @@ public:
      * \brief pullOSStatus - Вытягивает статуи системы
      * \return Статус системы
      */
-    static OS_STATUS pullOSStatus()
-    {
-        struct sysinfo si;
-        if (sysinfo(&si) == -1)
-            throw std::runtime_error("failed to read sysinfo()");
-
-        auto procs = readproctab(PROC_FILLUSR | PROC_FILLSTAT | PROC_FILLSTATUS | PROC_FILLCOM | PROC_FILLMEM);
-        if (procs == NULL)
-            throw std::runtime_error("failed to read procs");
-
-        PSMAP allPs{};
-        for(int i = 0; procs[i] != NULL; ++i)
-            allPs.insert(procs[i]->tid, {
-                             QString{procs[i]->ruser},
-                             QString{procs[i]->cmd},
-                             procs[i]->pcpu,    //FIXME: count cpu by ->starttime/utime... mb...
-                             procs[i]->size
-                         });
-
-        //TODO: get FS
-        size_t TotalFSSize = 0, UsedFSSize = 0;
-        FSMAP allFs{};
-        //TODO: read fs info from here
-        qDebug()<<_PATH_MOUNTED;
-        qDebug()<<allPs;
-
-        return {
-            .TotalFSSize = TotalFSSize,
-            .UsedFSSize = UsedFSSize,
-
-            .cpuLoad = si.loads[0],
-            .psCount = si.procs,
-            .MemoryTotal = si.totalram,
-            .MemoryFree = si.freeram,
-
-            .allFs = allFs,
-            .allPs = allPs
-        };
-    }
+    static OS_STATUS pullOSStatus();
 
 signals:
     void pulledOSStatus(OS_STATUS);
@@ -137,5 +94,9 @@ private:
 };
 
 }
+
+QDebug operator<<(QDebug, const OS_UTILS::PS_STRUCT &);
+QDebug operator<<(QDebug, const OS_UTILS::FS_STRUCT &);
+QDebug operator<<(QDebug, const OS_UTILS::OS_STATUS &);
 
 #endif // OS_UTILS_H
