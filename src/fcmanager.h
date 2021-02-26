@@ -8,12 +8,19 @@
 #include <QJsonObject>
 #include <QFile>
 #include <QTimer>
+#include <QMutex>
+#include <QMutexLocker>
 #include <QRegularExpression>
 #include <chrono>
 
-#include "fcm_thread.h"
+//#include "fcm_thread.h"
+#include "fcmthreadhandshake.h"
+#include "fcmthreadpoller.h"
 
 using namespace std::chrono;
+
+struct agentInfo{};
+struct dataFromAgent{};
 
 /**
  * TODO: 
@@ -32,13 +39,15 @@ class FCManager final : public QTcpServer
 {
     Q_OBJECT
 public:
-    explicit FCManager(QCoreApplication *, QObject *parent = 0);
+    explicit FCManager(QObject *parent = 0);
 
-    QString settings_path{"conf.json"};
-    void readConfig();
+    void readConfig(QString settings_path = "conf.json");
     bool startServer();
 
-//TESTS
+    bool setAgent(qint32, const agentInfo &);
+    void startPolling();
+
+//TESTS____
     FCConfig getConfig() {return config;}
 //_________
 
@@ -46,15 +55,19 @@ protected:
     void incomingConnection(qintptr socketDescriptor);
 
 private:
-    QCoreApplication *eventLoop;
     FCConfig config;
     QTimer pollingRate{this};
     int currNumberOfAgents{0};
 
+    //qint32 is QHostAddress::toIPv4Address()
+    QMap<qint32, agentInfo> agents;
+    QMutex agentsMutex;
+
 signals:
+    void gotData(const QPair<qint32, std::optional<dataFromAgent>> &);
 
 private slots:
-    void startPolling();
+    void pollingFn();
 };
 
 #endif

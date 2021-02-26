@@ -18,10 +18,10 @@ private slots:
     {
         if (QFile::exists("conf.json")) QFile::remove("conf.json");
 
-        FCManager manager{nullptr};
+        FCManager manager{};
         manager.readConfig();
 
-        QVERIFY(QFile::exists(manager.settings_path));
+        QVERIFY(QFile::exists("conf.json"));
 
         auto config = manager.getConfig();
 
@@ -40,9 +40,8 @@ private slots:
         QVERIFY(file.write(DATA) != -1);
         file.close();
 
-        FCManager manager{nullptr};
-        manager.settings_path = file.fileName();
-        manager.readConfig();
+        FCManager manager{};
+        manager.readConfig(file.fileName());
         auto config = manager.getConfig();
 
         QCOMPARE(config.addr, QHostAddress{QHostAddress::AnyIPv4});

@@ -11,6 +11,7 @@ int main(int argc, char *argv[])
     QCoreApplication a(argc, argv);
 
     FCManager server(&a);
+    server.readConfig();
     server.startServer();
 
     return a.exec();

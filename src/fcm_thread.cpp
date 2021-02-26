@@ -30,6 +30,10 @@ void FcmThread::run()
     // We'll have multiple clients, we want to know which is which
     qDebug() << socketDescriptor << " Client connected";
 
+    // Какой нить handshake
+    // Если все окк то parent->addAgent();
+    // иначе disconnect()
+
     // make this thread a loop,
     // thread will stay alive so that signal/slot to function properly
     // not dropped out in the middle when thread dies

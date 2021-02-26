@@ -20,12 +20,16 @@ list(APPEND QT_MODULES
 
 list(APPEND SOURCES
     ${TOP_DIR}/src/fcmanager.cpp
-    ${TOP_DIR}/src/fcm_thread.cpp)
+    ${TOP_DIR}/src/fcm_thread.cpp
+    ${TOP_DIR}/src/fcmthreadhandshake.cpp
+    ${TOP_DIR}/src/fcmthreadpoller.cpp)
 
 list(APPEND HEADERS
     ${TOP_DIR}/src/fcmanager.h
     ${TOP_DIR}/src/fcm_thread.h
-    ${TOP_DIR}/src/utils.h)
+    ${TOP_DIR}/src/utils.h
+    ${TOP_DIR}/src/fcmthreadhandshake.h
+    ${TOP_DIR}/src/fcmthreadpoller.h)
 
 add_subdirectory(src)
 add_subdirectory(test)

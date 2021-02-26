@@ -2,9 +2,8 @@
 #include "fcm_thread.h"
 #include "utils.h"
 
-FCManager::FCManager(QCoreApplication *app, QObject *parent) :
-    QTcpServer(parent),
-    eventLoop(app)
+FCManager::FCManager(QObject *parent) :
+    QTcpServer(parent)
 {
     QObject::connect(&pollingRate, &QTimer::timeout, this, &FCManager::startPolling);
 }
@@ -12,7 +11,6 @@ FCManager::FCManager(QCoreApplication *app, QObject *parent) :
 bool FCManager::startServer()
 {
     readConfig();
-    if (eventLoop == nullptr) return false;
 
     if(!this->listen(config.addr, config.port))
     {
@@ -27,23 +25,47 @@ bool FCManager::startServer()
     return true;
 }
 
+//thread-safe
+bool FCManager::setAgent(qint32 addr, const agentInfo &info)
+{
+    QMutexLocker locker(&agentsMutex);
+    if (config.maxNumberOfAgents >= currNumberOfAgents)
+        return false;
+
+    currNumberOfAgents++;
+
+    agents.insert(addr, info);
+    return true;
+}
+
 void FCManager::incomingConnection(qintptr socketDescriptor)
 {
-    if (currNumberOfAgents >= config.maxNumberOfAgents) {
-        qInfo() << "Слишком много агентов";
-        return;
-    }
-
     qDebug() << socketDescriptor << " Подключение...";
 
-    FcmThread *thread = new FcmThread(socketDescriptor, this);
+//    FcmThread *thread = new FcmThread(socketDescriptor, this);
 
-    // когда поток завершится, его объект удалится
-    connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
+//    // когда поток завершится, его объект удалится
+//    connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
 
-    thread->start();
-    
-    currNumberOfAgents++;
+//    thread->start();
+
+    // Предпологаю что мы делаем какой нить "handshake" и только потом
+    // В потоке добавляем агента...
+    // Но мб имеет смысл и держать поток на соединения, я хз...
+    // И тада добалять в QMap agents потоки
+    FcmThreadHandshake{}.start();
+}
+
+//thread-safe
+void FCManager::pollingFn()
+{
+    QMutexLocker locker(&agentsMutex);
+
+    for(const auto agent: agents) {
+        Q_UNUSED(agent);
+        FcmThreadPoller{}.start();
+        // если дата то emit FCManager::gotData(data);
+    }
 }
 
 inline std::chrono::milliseconds parseTime(const QString& input)
@@ -62,7 +84,7 @@ inline std::chrono::milliseconds parseTime(const QString& input)
     return time;
 }
 
-void FCManager::readConfig()
+void FCManager::readConfig(QString settings_path)
 {
     QSettings settings(settings_path, Utils::JsonFormat);
 
@@ -88,5 +110,6 @@ void FCManager::readConfig()
 
 void FCManager::startPolling()
 {
-    return;
+    pollingRate.callOnTimeout(this, &FCManager::pollingFn);
+    pollingRate.start(config.timeOut);
 }
