@@ -14,13 +14,10 @@
 #include <chrono>
 
 //#include "fcm_thread.h"
-#include "fcmthreadhandshake.h"
-#include "fcmthreadpoller.h"
+#include "common/agentdata.h"
+#include "agents/agentsinfo.h"
 
 using namespace std::chrono;
-
-struct agentInfo{};
-struct dataFromAgent{};
 
 /**
  * TODO: 
@@ -38,13 +35,14 @@ struct FCConfig
 class FCManager final : public QTcpServer
 {
     Q_OBJECT
+
 public:
     explicit FCManager(QObject *parent = 0);
 
     void readConfig(QString settings_path = "conf.json");
     bool startServer();
 
-    bool setAgent(qint32, const agentInfo &);
+    bool setAgent(qint32, const AgentVariant &);
     void startPolling();
 
 //TESTS____
@@ -56,15 +54,14 @@ protected:
 
 private:
     FCConfig config;
-    QTimer pollingRate{this};
     int currNumberOfAgents{0};
 
     //qint32 is QHostAddress::toIPv4Address()
-    QMap<qint32, agentInfo> agents;
+    QMap<qint32, AgentVariant> agents;
     QMutex agentsMutex;
 
 signals:
-    void gotData(const QPair<qint32, std::optional<dataFromAgent>> &);
+    void gotData(const QPair<qint32, Common::dataFromAgent> &);
 
 private slots:
     void pollingFn();

@@ -1,12 +1,10 @@
 #include "fcmanager.h"
-#include "fcm_thread.h"
-#include "utils.h"
+#include "threads/fcm_thread.h"
+#include "common/utils.h"
 
 FCManager::FCManager(QObject *parent) :
     QTcpServer(parent)
-{
-    QObject::connect(&pollingRate, &QTimer::timeout, this, &FCManager::startPolling);
-}
+{}
 
 bool FCManager::startServer()
 {
@@ -19,14 +17,14 @@ bool FCManager::startServer()
     else
     {
         qDebug() << "Прослушивается порт " << config.port << "...";
-        pollingRate.start(config.timeOut);
+//        pollingRate.start(config.timeOut);
     }
 
     return true;
 }
 
 //thread-safe
-bool FCManager::setAgent(qint32 addr, const agentInfo &info)
+bool FCManager::setAgent(qint32 addr, const AgentVariant &info)
 {
     QMutexLocker locker(&agentsMutex);
     if (config.maxNumberOfAgents >= currNumberOfAgents)
@@ -53,7 +51,6 @@ void FCManager::incomingConnection(qintptr socketDescriptor)
     // В потоке добавляем агента...
     // Но мб имеет смысл и держать поток на соединения, я хз...
     // И тада добалять в QMap agents потоки
-    FcmThreadHandshake{}.start();
 }
 
 //thread-safe
@@ -61,27 +58,10 @@ void FCManager::pollingFn()
 {
     QMutexLocker locker(&agentsMutex);
 
-    for(const auto agent: agents) {
+    for(auto&& agent: agents) {
         Q_UNUSED(agent);
-        FcmThreadPoller{}.start();
         // если дата то emit FCManager::gotData(data);
     }
-}
-
-inline std::chrono::milliseconds parseTime(const QString& input)
-{
-    std::chrono::milliseconds time{0};
-
-    QRegularExpression ms{"[0-9]+ms"},
-                       s{"[0-9]+s"},
-                       min{"[0-9]+m"},
-                       hour{"[0-9]+h"};
-
-    time += hours{hour.match(input).captured().left(1).toInt()};
-    time += minutes{min.match(input).captured().left(1).toInt()};
-    time += seconds{s.match(input).captured().left(1).toInt()};
-    time += milliseconds{ms.match(input).captured().left(2).toInt()};
-    return time;
 }
 
 void FCManager::readConfig(QString settings_path)
@@ -104,12 +84,12 @@ void FCManager::readConfig(QString settings_path)
 
     if (settings.value("polling_rate").isNull())
         settings.setValue("polling_rate", "1m");
-    config.timeOut = parseTime(settings.value("polling_rate").toString());
+    config.timeOut = Utils::parseTime(settings.value("polling_rate").toString());
 }
 
 
 void FCManager::startPolling()
 {
-    pollingRate.callOnTimeout(this, &FCManager::pollingFn);
-    pollingRate.start(config.timeOut);
+//    pollingRate.callOnTimeout(this, &FCManager::pollingFn);
+//    pollingRate.start(config.timeOut);
 }
