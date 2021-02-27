@@ -12,7 +12,7 @@
 #include <QMutexLocker>
 #include <QRegularExpression>
 #include <chrono>
-
+#include <map>
 //#include "fcm_thread.h"
 #include "common/agentdata.h"
 #include "agents/agentsinfo.h"
@@ -41,7 +41,7 @@ public:
 
     void readConfig(QString settings_path = "conf.json");
     bool startServer();
-    bool setAgent(qint32, const AgentVariant &);
+    bool setAgent(qint32, const FCM::AgentVariant &);
     friend class fcmanager_tests;
 
 protected:
@@ -55,7 +55,7 @@ private:
     int port{0};
 
     //qint32 is QHostAddress::toIPv4Address()
-    //QMap<qint32, AgentVariant> agents;
+    std::map<qint32, FCM::AgentVariant> agents;
     QMutex agentsMutex;
 
 signals:

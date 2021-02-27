@@ -4,21 +4,20 @@
 #include <QTimer>
 #include <variant>
 
-class AgentInterface
+namespace FCM {
+
+struct Agent
 {
-    QTimer pollingRate{};   // Deafaulted from constructer
+    QTimer timer;
 };
 
-class Agent: public AgentInterface
+struct Proxy
 {
-
+    std::map<qint32, Agent> agents;
 };
 
-class Proxy: public AgentInterface
-{
+using AgentVariant = std::variant<Agent, Proxy>;
 
-};
-
-typedef std::variant<Agent, Proxy> AgentVariant;
+}
 
 #endif // AGENTSINFO_H

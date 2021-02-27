@@ -1,56 +1,40 @@
 #include "fcm_thread.h"
 
-FcmThread::FcmThread(qintptr ID, QObject *parent) :
-    QThread(parent)
+FcmThread::FcmThread(qintptr ID, QObject *parent) : QObject(parent)
 {
-    this->socketDescriptor = ID;
+    socket = new QTcpSocket();
+
+    if(!socket->setSocketDescriptor(ID))
+        throw std::runtime_error("Something went wrong with socket");
 }
 
-void FcmThread::run()
+void FcmThread::doSomeWork()
 {
     qDebug() << "Поток запущен!";
 
-    socket = new QTcpSocket();
+    connect(socket, &QTcpSocket::readyRead, this, &FcmThread::readyRead, Qt::DirectConnection);
+    connect(socket, &QTcpSocket::disconnected, this, &FcmThread::disconnected);
 
-    if(!socket->setSocketDescriptor(this->socketDescriptor))
-    {
-        // что-то пошло не так, объект потока вырабатывает сигнал ошибки
-        // FIXME: сделать обработчик этой ошибки
-        emit error(socket->error());
-        return;
-    }
+    qDebug() << socket->socketDescriptor() << " Client connected";
 
-    // connect socket and signal
-    // Qt::DirectConnection is used because it's multithreaded
-    // this makes the slot to be invoked immediately, when the signal is emitted.
-    connect(socket, SIGNAL(readyRead()), this, SLOT(readyRead()), Qt::DirectConnection);
-    connect(socket, SIGNAL(disconnected()), this, SLOT(disconnected()));
+    emit resultReady(QString("Result"));
+}
 
-
-    // We'll have multiple clients, we want to know which is which
-    qDebug() << socketDescriptor << " Client connected";
-
-    // Какой нить handshake
-    // Если все окк то parent->addAgent();
-    // иначе disconnect()
-
-    exec();
+std::optional<FCM::AgentVariant> FcmThread::performHandshake()
+{
+    return std::nullopt;
 }
 
 void FcmThread::readyRead()
 {
-    // get the information
     QByteArray Data = socket->readAll();
-
-    // will write on server side window
-    qDebug() << socketDescriptor << " Data in: " << Data;
-
+    qDebug() << socket->socketDescriptor() << " Data in: " << Data;
     socket->write(Data);
 }
 
 void FcmThread::disconnected()
 {
-    qDebug() << socketDescriptor << " Disconnected";
+    qDebug() << socket->socketDescriptor() << " Disconnected";
     socket->deleteLater();
     exit(0);
 }

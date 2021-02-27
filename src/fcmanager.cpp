@@ -24,7 +24,7 @@ bool FCManager::startServer()
 }
 
 //thread-safe
-bool FCManager::setAgent(qint32 addr, const AgentVariant &info)
+bool FCManager::setAgent(qint32 addr, const FCM::AgentVariant &info)
 {
     QMutexLocker locker(&agentsMutex);
     if (maxNumberOfAgents >= currNumberOfAgents)
@@ -32,7 +32,7 @@ bool FCManager::setAgent(qint32 addr, const AgentVariant &info)
 
     currNumberOfAgents++;
 
-   // agents.insert(addr, info);
+    agents.emplace(addr, info);
     return true;
 }
 
@@ -46,6 +46,8 @@ void FCManager::incomingConnection(qintptr socketDescriptor)
 //    connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
 
 //    thread->start();
+
+
 
     // Предпологаю что мы делаем какой нить "handshake" и только потом
     // В потоке добавляем агента...

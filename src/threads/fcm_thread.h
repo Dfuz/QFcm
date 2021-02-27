@@ -4,25 +4,29 @@
 #include <QThread>
 #include <QTcpSocket>
 #include <QDebug>
+#include "agents/agentsinfo.h"
 
-class FcmThread : public QThread
+class FcmThread : public QObject
 {
     Q_OBJECT
 
 public:
     explicit FcmThread(qintptr ID, QObject *parent = 0);
-    void run();
+    void doSomeWork();
 
 private:
     QTcpSocket *socket;
-    qintptr socketDescriptor;
+    std::optional<FCM::AgentVariant> performHandshake();
 
 signals:
+    void resultReady(const QString& result);
     void error(QTcpSocket::SocketError socketerror);
 
 public slots:
     void readyRead();
     void disconnected();
+    void start();
+    void stop();
 };
 
 #endif
