@@ -41,30 +41,27 @@ public:
 
     void readConfig(QString settings_path = "conf.json");
     bool startServer();
-
     bool setAgent(qint32, const AgentVariant &);
-    void startPolling();
-
-//TESTS____
-    FCConfig getConfig() {return config;}
-//_________
+    friend class fcmanager_tests;
 
 protected:
     void incomingConnection(qintptr socketDescriptor);
 
 private:
-    FCConfig config;
+    QHostAddress addr{QHostAddress::Null};
+    std::chrono::milliseconds timeOut{0};
+    int maxNumberOfAgents{0};
     int currNumberOfAgents{0};
+    int port{0};
 
     //qint32 is QHostAddress::toIPv4Address()
-    QMap<qint32, AgentVariant> agents;
+    //QMap<qint32, AgentVariant> agents;
     QMutex agentsMutex;
 
 signals:
     void gotData(const QPair<qint32, Common::dataFromAgent> &);
 
 private slots:
-    void pollingFn();
 };
 
 #endif

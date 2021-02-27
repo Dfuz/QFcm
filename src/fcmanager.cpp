@@ -10,13 +10,13 @@ bool FCManager::startServer()
 {
     readConfig();
 
-    if(!this->listen(config.addr, config.port))
+    if(!this->listen(addr, port))
     {
         qDebug() << "Не удалось запустить сервер";
     }
     else
     {
-        qDebug() << "Прослушивается порт " << config.port << "...";
+        qDebug() << "Прослушивается порт " << port << "...";
 //        pollingRate.start(config.timeOut);
     }
 
@@ -27,12 +27,12 @@ bool FCManager::startServer()
 bool FCManager::setAgent(qint32 addr, const AgentVariant &info)
 {
     QMutexLocker locker(&agentsMutex);
-    if (config.maxNumberOfAgents >= currNumberOfAgents)
+    if (maxNumberOfAgents >= currNumberOfAgents)
         return false;
 
     currNumberOfAgents++;
 
-    agents.insert(addr, info);
+   // agents.insert(addr, info);
     return true;
 }
 
@@ -53,17 +53,6 @@ void FCManager::incomingConnection(qintptr socketDescriptor)
     // И тада добалять в QMap agents потоки
 }
 
-//thread-safe
-void FCManager::pollingFn()
-{
-    QMutexLocker locker(&agentsMutex);
-
-    for(auto&& agent: agents) {
-        Q_UNUSED(agent);
-        // если дата то emit FCManager::gotData(data);
-    }
-}
-
 void FCManager::readConfig(QString settings_path)
 {
     QSettings settings(settings_path, Utils::JsonFormat);
@@ -72,24 +61,17 @@ void FCManager::readConfig(QString settings_path)
 
     if (settings.value("port").isNull())
         settings.setValue("port", 1234);
-    config.port = settings.value("port").toInt();
+    port = settings.value("port").toInt();
 
     if (settings.value("address").isNull())
         settings.setValue("address", "127.0.0.1");
-    config.addr = QHostAddress{settings.value("address").toString()};
+    addr = QHostAddress{settings.value("address").toString()};
 
     if (settings.value("max_agents").isNull())
         settings.setValue("max_agents", 4);
-    config.maxNumberOfAgents = settings.value("max_agents").toInt();
+    maxNumberOfAgents = settings.value("max_agents").toInt();
 
     if (settings.value("polling_rate").isNull())
         settings.setValue("polling_rate", "1m");
-    config.timeOut = Utils::parseTime(settings.value("polling_rate").toString());
-}
-
-
-void FCManager::startPolling()
-{
-//    pollingRate.callOnTimeout(this, &FCManager::pollingFn);
-//    pollingRate.start(config.timeOut);
+    timeOut = Utils::parseTime(settings.value("polling_rate").toString());
 }

@@ -1,7 +1,7 @@
 #include <QtTest>
 #include <QIODevice>
 #include <QFile>
-#include "utils.h"
+#include "common/utils.h"
 #include "fcmanager.h"
 
 class fcmanager_tests: public QObject
@@ -23,12 +23,10 @@ private slots:
 
         QVERIFY(QFile::exists("conf.json"));
 
-        auto config = manager.getConfig();
-
-        QCOMPARE(config.addr, QHostAddress{QHostAddress::LocalHost});
-        QCOMPARE(config.port, 1234);
-        QCOMPARE(config.maxNumberOfAgents, 4);
-        QCOMPARE(config.timeOut, std::chrono::milliseconds{0} + std::chrono::minutes{1});
+        QCOMPARE(manager.addr, QHostAddress{QHostAddress::LocalHost});
+        QCOMPARE(manager.port, 1234);
+        QCOMPARE(manager.maxNumberOfAgents, 4);
+        QCOMPARE(manager.timeOut, std::chrono::milliseconds{0} + std::chrono::minutes{1});
     }
 
     void settingsFile()
@@ -42,12 +40,11 @@ private slots:
 
         FCManager manager{};
         manager.readConfig(file.fileName());
-        auto config = manager.getConfig();
 
-        QCOMPARE(config.addr, QHostAddress{QHostAddress::AnyIPv4});
-        QCOMPARE(config.port, 4000);
-        QCOMPARE(config.maxNumberOfAgents, 10);
-        QCOMPARE(config.timeOut, std::chrono::milliseconds{0} + std::chrono::minutes{1} + std::chrono::seconds{1});
+        QCOMPARE(manager.addr, QHostAddress{QHostAddress::AnyIPv4});
+        QCOMPARE(manager.port, 4000);
+        QCOMPARE(manager.maxNumberOfAgents, 10);
+        QCOMPARE(manager.timeOut, std::chrono::milliseconds{0} + std::chrono::minutes{1} + std::chrono::seconds{1});
 
         QFile::remove(file.fileName());
     }
