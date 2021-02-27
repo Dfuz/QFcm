@@ -6,12 +6,12 @@
 #include <QDebug>
 #include "agents/agentsinfo.h"
 
-class FcmThread : public QObject
+class FcmWorker : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit FcmThread(qintptr ID, QObject *parent = 0);
+    explicit FcmWorker(qintptr ID, QObject *parent = 0);
     void doSomeWork();
 
 private:
@@ -21,12 +21,12 @@ private:
 signals:
     void resultReady(const QString& result);
     void error(QTcpSocket::SocketError socketerror);
+    void agentConnected(FCM::AgentVariant);
+    void finished();
 
 public slots:
     void readyRead();
     void disconnected();
-    void start();
-    void stop();
 };
 
 #endif

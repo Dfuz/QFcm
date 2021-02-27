@@ -1,6 +1,6 @@
 #include "fcm_thread.h"
 
-FcmThread::FcmThread(qintptr ID, QObject *parent) : QObject(parent)
+FcmWorker::FcmWorker(qintptr ID, QObject *parent) : QObject(parent)
 {
     socket = new QTcpSocket();
 
@@ -8,31 +8,31 @@ FcmThread::FcmThread(qintptr ID, QObject *parent) : QObject(parent)
         throw std::runtime_error("Something went wrong with socket");
 }
 
-void FcmThread::doSomeWork()
+void FcmWorker::doSomeWork()
 {
     qDebug() << "Поток запущен!";
 
-    connect(socket, &QTcpSocket::readyRead, this, &FcmThread::readyRead, Qt::DirectConnection);
-    connect(socket, &QTcpSocket::disconnected, this, &FcmThread::disconnected);
+    connect(socket, &QTcpSocket::readyRead, this, &FcmWorker::readyRead, Qt::DirectConnection);
+    connect(socket, &QTcpSocket::disconnected, this, &FcmWorker::disconnected);
 
     qDebug() << socket->socketDescriptor() << " Client connected";
 
-    emit resultReady(QString("Result"));
+    emit finished();
 }
 
-std::optional<FCM::AgentVariant> FcmThread::performHandshake()
+std::optional<FCM::AgentVariant> FcmWorker::performHandshake()
 {
     return std::nullopt;
 }
 
-void FcmThread::readyRead()
+void FcmWorker::readyRead()
 {
     QByteArray Data = socket->readAll();
     qDebug() << socket->socketDescriptor() << " Data in: " << Data;
     socket->write(Data);
 }
 
-void FcmThread::disconnected()
+void FcmWorker::disconnected()
 {
     qDebug() << socket->socketDescriptor() << " Disconnected";
     socket->deleteLater();

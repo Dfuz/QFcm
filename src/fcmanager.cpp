@@ -17,42 +17,33 @@ bool FCManager::startServer()
     else
     {
         qDebug() << "Прослушивается порт " << port << "...";
-//        pollingRate.start(config.timeOut);
     }
 
-    return true;
-}
-
-//thread-safe
-bool FCManager::setAgent(qint32 addr, const FCM::AgentVariant &info)
-{
-    QMutexLocker locker(&agentsMutex);
-    if (maxNumberOfAgents >= currNumberOfAgents)
-        return false;
-
-    currNumberOfAgents++;
-
-    agents.emplace(addr, info);
     return true;
 }
 
 void FCManager::incomingConnection(qintptr socketDescriptor)
 {
     qDebug() << socketDescriptor << " Подключение...";
+    FcmWorker* threadWorker = new FcmWorker(socketDescriptor, this);
+    QThread* thread = new QThread();
+    threadWorker->moveToThread(thread);
 
-//    FcmThread *thread = new FcmThread(socketDescriptor, this);
+    connect(thread, &QThread::started, threadWorker, &FcmWorker::doSomeWork);
+    connect(thread, &QThread::finished, threadWorker, &FcmWorker::deleteLater);
+    connect(threadWorker, &FcmWorker::finished, thread, &QThread::quit);
+    connect(threadWorker, &FcmWorker::finished, threadWorker, &FcmWorker::deleteLater);
 
-//    // когда поток завершится, его объект удалится
-//    connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
+    connect(threadWorker, &FcmWorker::agentConnected, this, [=](const auto& agent){
+        agents[threadWorker] = agent;
+    }, Qt::QueuedConnection);
 
-//    thread->start();
+    connect(threadWorker, &FcmWorker::finished, this, [=](){
+        agents.erase(threadWorker);
+    }, Qt::QueuedConnection);
 
-
-
-    // Предпологаю что мы делаем какой нить "handshake" и только потом
-    // В потоке добавляем агента...
-    // Но мб имеет смысл и держать поток на соединения, я хз...
-    // И тада добалять в QMap agents потоки
+    thread->start();
+    return;
 }
 
 void FCManager::readConfig(QString settings_path)
