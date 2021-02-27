@@ -1,5 +1,5 @@
 #include "fcmanager.h"
-#include "threads/fcm_thread.h"
+#include "threads/fcmWorker.h"
 #include "common/utils.h"
 
 FCManager::FCManager(QObject *parent) :
