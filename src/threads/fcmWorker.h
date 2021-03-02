@@ -15,7 +15,6 @@ public:
     void doSomeWork();
 
 private:
-    QTcpSocket *socket;
     std::optional<FCM::AgentVariant> performHandshake();
 
 signals:

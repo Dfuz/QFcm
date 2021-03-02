@@ -26,6 +26,8 @@ list(APPEND HEADERS
     ${TOP_DIR}/src/fcmanager.h
     ${TOP_DIR}/src/common/agentdata.h
     ${TOP_DIR}/src/common/utils.h
+    ${TOP_DIR}/src/common/querybuilder.h
+    ${TOP_DIR}/src/common/messagebuilder.h
     ${TOP_DIR}/src/agents/agentsinfo.h
     ${TOP_DIR}/src/threads/fcmWorker.h)
 

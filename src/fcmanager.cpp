@@ -24,26 +24,26 @@ bool FCManager::startServer()
 
 void FCManager::incomingConnection(qintptr socketDescriptor)
 {
-    qDebug() << socketDescriptor << " Подключение...";
-    FcmWorker* threadWorker = new FcmWorker(socketDescriptor, this);
-    QThread* thread = new QThread();
-    threadWorker->moveToThread(thread);
+//    qDebug() << socketDescriptor << " Подключение...";
+//    FcmWorker* threadWorker = new FcmWorker(socketDescriptor, this);
+//    QThread* thread = new QThread();
+//    threadWorker->moveToThread(thread);
 
-    connect(thread, &QThread::started, threadWorker, &FcmWorker::doSomeWork);
-    connect(thread, &QThread::finished, threadWorker, &FcmWorker::deleteLater);
-    connect(threadWorker, &FcmWorker::finished, thread, &QThread::quit);
-    connect(threadWorker, &FcmWorker::finished, threadWorker, &FcmWorker::deleteLater);
+//    connect(thread, &QThread::started, threadWorker, &FcmWorker::doSomeWork);
+//    connect(thread, &QThread::finished, threadWorker, &FcmWorker::deleteLater);
+//    connect(threadWorker, &FcmWorker::finished, thread, &QThread::quit);
+//    connect(threadWorker, &FcmWorker::finished, threadWorker, &FcmWorker::deleteLater);
 
-    connect(threadWorker, &FcmWorker::agentConnected, this, [=](const auto& agent){
-        agents[threadWorker] = agent;
-    }, Qt::QueuedConnection);
+//    connect(threadWorker, &FcmWorker::agentConnected, this, [=](const auto& agent){
+//        agents[threadWorker] = agent;
+//    }, Qt::QueuedConnection);
 
-    connect(threadWorker, &FcmWorker::finished, this, [=](){
-        agents.erase(threadWorker);
-    }, Qt::QueuedConnection);
+//    connect(threadWorker, &FcmWorker::finished, this, [=](){
+//        agents.erase(threadWorker);
+//    }, Qt::QueuedConnection);
 
-    thread->start();
-    return;
+//    thread->start();
+//    return;
 }
 
 void FCManager::readConfig(QString settings_path)

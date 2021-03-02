@@ -1,8 +1,10 @@
 #include <QtTest>
 #include <QIODevice>
 #include <QFile>
+
 #include "common/utils.h"
 #include "fcmanager.h"
+#include "common/querybuilder.h"
 
 class fcmanager_tests: public QObject
 {
@@ -47,6 +49,32 @@ private slots:
         QCOMPARE(manager.timeOut, std::chrono::milliseconds{0} + std::chrono::minutes{1} + std::chrono::seconds{1});
 
         QFile::remove(file.fileName());
+    }
+
+    void testQueruBuilder()
+    {
+        auto builder = Utils::QueryBuilder{new QTcpSocket()};
+
+        QMap<QString, QVariant> payload {
+            std::pair{"test1", "testmsg"},
+            std::pair{"test2", "testmsg"},
+            std::pair{"test3", "testmsg"}
+        };
+
+        auto msg = Utils::TestMessage{payload};
+        auto test1 = builder.makeQuery()
+                .toSend(msg)
+                .toGet<Utils::Data>();
+
+        auto test2 = builder.makeQuery()
+               .toGet<Utils::Data>()
+               .toSend(msg)
+                .invoke();
+
+        auto test3 = builder.makeQuery<Utils::Unidirectional>()
+               .toSend(msg)
+               .toGet<Utils::Test>()
+                .invoke();
     }
 };
 

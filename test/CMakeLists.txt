@@ -4,7 +4,7 @@ find_package(Qt5Test)
 
 if(Qt5Test_FOUND)
 
-	enable_testing(true)
+        enable_testing(true)
 
 	include_directories(${TOP_DIR}/src)
 
