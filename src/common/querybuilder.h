@@ -3,9 +3,12 @@
 
 #include <QTcpSocket>
 #include <QFuture>
+
+#include <algorithm>
 #include <memory>
 #include <type_traits>
 #include <variant>
+#include <functional>
 
 #include "messagebuilder.h"
 
@@ -16,43 +19,63 @@ enum QueryDirection {
     Unidirectional
 };
 
-template<QueryDirection direct, MessageType type, MessageType ret>
-struct QueryFull {
-    std::unique_ptr<Message<type>> msg;
+template<MessageType ret>
+using Verificator = std::function<bool(const Message<ret> &)>;
 
-    //TODO: fucking enable_if.., SOMEONE HEEEELPP
-    QFuture<void> invoke() {return QFuture<void>();};
+template<QueryDirection direct, MessageType to, MessageType ret>
+struct QueryFull {
+    QueryFull(const Message<to> &_msg): msg(_msg) {}
+
+    template<QueryDirection T = direct,
+             std::enable_if_t<T == QueryDirection::Bidirectional, bool> = true>
+    std::optional<Message<ret>> invoke() {
+        Message<ret> got = {}; //TODO: actual code
+
+        if (!std::all_of(verificators.cbegin(), verificators.cend(),
+                        [&](const auto &fn) { return fn(got);}))
+            return std::nullopt;
+
+        return {};
+    };
+
+    template<QueryDirection T = direct,
+             std::enable_if_t<T == QueryDirection::Unidirectional, bool> = true>
+    Message<MessageType::NoMessage> invoke() {
+        return {};
+    };
+
+    void setVerificator(Verificator<ret> verFn) {
+        verificators.push_back(verFn);
+    }
+
+private:
+    Message<to> msg;
+    std::vector<Verificator<ret>> verificators;
 };
 
 template<QueryDirection direct, MessageType ret>
 struct QueryCanGet {
-
-    template<MessageType type>
-    QueryFull<direct, type, ret> toSend(Message<type> msg) {
-        return {std::make_unique<Message<type>>(msg)};
+    template<MessageType to>
+    QueryFull<direct, to, ret> toSend(const Message<to> & msg) {
+        return {msg};
     };
-
-//    QFuture<Message<ret>> invoke();
 };
 
-template<QueryDirection direct, MessageType type>
+template<QueryDirection direct, MessageType to>
 struct QueryCanSend {
-    std::unique_ptr<Message<type>> msg;
+    Message<to> msg;
 
     template<MessageType ret>
-    QueryFull<direct, type, ret> toGet() {
-        return {std::move(msg)};
+    QueryFull<direct, to, ret> toGet() {
+        return {msg};
     };
-
-//    QFuture<void> invoke();
 };
 
 template<QueryDirection direct>
 struct QueryBase {
-
-    template<MessageType type>
-    QueryCanSend<direct, type> toSend(Message<type> msg) {
-        return {std::make_unique<Message<type>>(msg)};
+    template<MessageType to>
+    QueryCanSend<direct, to> toSend(const Message<to> &msg) {
+        return {msg};
     };
 
     template<MessageType ret>
@@ -74,6 +97,20 @@ public:
     QueryBase<direct> makeQuery() {
         return {};
     };
+
+    template<MessageType to>
+    QueryFull<Unidirectional, to, NoMessage> onlySend(const Message<to> & msg) {
+        return makeQuery<Unidirectional>()
+                .toGet<NoMessage>()
+                .toSend<to>(msg);
+    }
+
+    template<MessageType ret>
+    QueryFull<Bidirectional, NoMessage, ret> onlyGet() {
+        return makeQuery<Bidirectional>()
+                .toSend<NoMessage>({})
+                .toGet<ret>();
+    }
 
 private:
     std::unique_ptr<QTcpSocket> socket;

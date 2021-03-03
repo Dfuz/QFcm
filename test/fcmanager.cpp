@@ -69,12 +69,33 @@ private slots:
         auto test2 = builder.makeQuery()
                .toGet<Utils::Data>()
                .toSend(msg)
-                .invoke();
+               .invoke();
 
         auto test3 = builder.makeQuery<Utils::Unidirectional>()
                .toSend(msg)
                .toGet<Utils::Test>()
-                .invoke();
+               .invoke();
+
+        auto query1 = builder.onlySend(msg);
+        auto query2 = builder.onlyGet<Utils::Test>();
+
+        query1.setVerificator([](const auto &msg) {
+            Q_UNUSED(msg);
+            return true;
+        });
+
+        auto verificator = [](const Utils::Message<Utils::Test> &msg) -> bool {
+            Q_UNUSED(msg);
+            return true;
+        };
+
+        query2.setVerificator(verificator);
+        auto test4 = query2.invoke();
+        if (!test4.has_value()) qInfo()<<"got none";
+
+//        query1.setVerificator(verificator);
+//        НЕ сработает так как не совпадает по типам, я на хайпееееее...
+
     }
 };
 
