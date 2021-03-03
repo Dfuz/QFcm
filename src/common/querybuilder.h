@@ -24,11 +24,11 @@ using Verificator = std::function<bool(const Message<ret> &)>;
 
 template<QueryDirection direct, MessageType to, MessageType ret>
 struct QueryFull {
-    QueryFull(const Message<to> &_msg): msg(_msg) {}
+    constexpr QueryFull(const Message<to> &_msg): msg(_msg) {}
 
     template<QueryDirection T = direct,
              std::enable_if_t<T == QueryDirection::Bidirectional, bool> = true>
-    std::optional<Message<ret>> invoke() {
+    std::optional<Message<ret>> invoke() noexcept {
         Message<ret> got = {}; //TODO: actual code
 
         if (!std::all_of(verificators.cbegin(), verificators.cend(),
@@ -40,23 +40,31 @@ struct QueryFull {
 
     template<QueryDirection T = direct,
              std::enable_if_t<T == QueryDirection::Unidirectional, bool> = true>
-    Message<MessageType::NoMessage> invoke() {
+    std::optional<Message<MessageType::NoMessage>> invoke() noexcept {
         return {};
     };
 
-    void setVerificator(Verificator<ret> verFn) {
+    constexpr void setVerificator(Verificator<ret> verFn) noexcept {
         verificators.push_back(verFn);
+    }
+    constexpr void setCompression(int newLevel) noexcept {
+        compressonLevel = newLevel;
     }
 
 private:
     Message<to> msg;
     std::vector<Verificator<ret>> verificators;
+    int compressonLevel = -1;
+
+    void sendData(const QByteArray &data) {
+
+    }
 };
 
 template<QueryDirection direct, MessageType ret>
 struct QueryCanGet {
     template<MessageType to>
-    QueryFull<direct, to, ret> toSend(const Message<to> & msg) {
+    QueryFull<direct, to, ret> toSend(const Message<to> & msg) noexcept {
         return {msg};
     };
 };
@@ -66,7 +74,7 @@ struct QueryCanSend {
     Message<to> msg;
 
     template<MessageType ret>
-    QueryFull<direct, to, ret> toGet() {
+    QueryFull<direct, to, ret> toGet() noexcept {
         return {msg};
     };
 };
@@ -74,12 +82,12 @@ struct QueryCanSend {
 template<QueryDirection direct>
 struct QueryBase {
     template<MessageType to>
-    QueryCanSend<direct, to> toSend(const Message<to> &msg) {
+    QueryCanSend<direct, to> toSend(const Message<to> &msg) noexcept {
         return {msg};
     };
 
     template<MessageType ret>
-    QueryCanGet<direct, ret> toGet() {
+    QueryCanGet<direct, ret> toGet() noexcept {
         return {};
     };
 };
@@ -87,33 +95,33 @@ struct QueryBase {
 struct QueryBuilder {
 public:
     QueryBuilder(QTcpSocket *skt): socket(skt) {}
-    QueryBuilder(qintptr ptrskt) {
+    constexpr QueryBuilder(qintptr ptrskt) noexcept {
         QTcpSocket* skt = new QTcpSocket();
         skt->setSocketDescriptor(ptrskt);
-        socket = std::make_unique<QTcpSocket>(skt);
+        socket = std::make_shared<QTcpSocket>(skt);
     }
 
     template<QueryDirection direct = QueryDirection::Bidirectional>
-    QueryBase<direct> makeQuery() {
+    QueryBase<direct> makeQuery() noexcept {
         return {};
     };
 
     template<MessageType to>
-    QueryFull<Unidirectional, to, NoMessage> onlySend(const Message<to> & msg) {
+    QueryFull<Unidirectional, to, NoMessage> onlySend(const Message<to> & msg) noexcept {
         return makeQuery<Unidirectional>()
                 .toGet<NoMessage>()
                 .toSend<to>(msg);
     }
 
     template<MessageType ret>
-    QueryFull<Bidirectional, NoMessage, ret> onlyGet() {
+    QueryFull<Bidirectional, NoMessage, ret> onlyGet() noexcept {
         return makeQuery<Bidirectional>()
                 .toSend<NoMessage>({})
                 .toGet<ret>();
     }
 
 private:
-    std::unique_ptr<QTcpSocket> socket;
+    std::shared_ptr<QTcpSocket> socket;
 };
 
 }
