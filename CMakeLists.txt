@@ -14,6 +14,8 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Network REQUIRED)
 
 set(TOP_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
+include(sanitizers.cmake)
+
 list(APPEND QT_MODULES
     Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Network)

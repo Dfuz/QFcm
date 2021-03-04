@@ -76,19 +76,16 @@ private slots:
             return qUncompress(reciver.readAll());
         };
 
-        Q_UNUSED(read_data);
+        auto test1 = builder.makeQuery()
+               .toGet<Utils::Test>()
+               .toSend(msg)
+               .invoke();
 
-//        Должны тестить в отдельном потоке...
-//        auto test1 = builder.makeQuery()
-//               .toGet<Utils::Test>()
-//               .toSend(msg)
-//               .invoke();
-
-//        read_data();
-//        write_data();
+        read_data();
+        write_data();
+        QVERIFY(test1.result().has_value());
 
         auto query1 = builder.onlySend(msg);
-
 
         auto query2 = builder.onlyGet<Utils::Test>();
 
@@ -104,15 +101,12 @@ private slots:
         query2.setVerificator(verificator);
         write_data();
         auto test4 = query2.invoke();
-        QVERIFY(test4.has_value());
+        QVERIFY(test4.result().has_value());
 
         query2.setVerificator(verificator_fail);
         write_data();
         auto test5 = query2.invoke();
-        QVERIFY(!test5.has_value());
-
-//        query1.setVerificator(verificator);
-//        НЕ сработает так как не совпадает по типам
+        QVERIFY(!test5.result().has_value());
 
     }
 };

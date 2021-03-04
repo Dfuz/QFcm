@@ -2,7 +2,7 @@
 #define QUERYBUILDER_H
 
 #include <QTcpSocket>
-#include <QFuture>
+#include <QtConcurrent/QtConcurrent>
 
 #include <algorithm>
 #include <memory>
@@ -24,6 +24,10 @@ using Verificator = std::function<bool(const Message<ret> &)>;
 
 template<QueryDirection direct, MessageType to = NoMessage, MessageType ret = NoMessage>
 struct Query {
+
+    template<MessageType invRet>
+    using InvokeReturn = std::optional<Message<invRet>>;
+
     Query(std::shared_ptr<QTcpSocket> _socket):
         socket(_socket)
     {}
@@ -43,30 +47,32 @@ struct Query {
 
     template<QueryDirection T = direct,
              std::enable_if_t<T == Bidirectional, bool> = true>
-    constexpr std::optional<Message<ret>> invoke() noexcept {
+    constexpr QFuture<InvokeReturn<ret>> invoke() noexcept {
 
-        if constexpr (to != NoMessage) {
-            auto toSend = qCompress(msg.toJson(), compressonLevel);
-            socket->write(toSend);
-        }
+        return QtConcurrent::run([&] () -> InvokeReturn<ret> {
+            if constexpr (to != NoMessage) {
+                auto toSend = qCompress(msg.toJson(), compressonLevel);
+                socket->write(toSend);
+            }
 
-        if constexpr (ret == NoMessage)
-            return Message<NoMessage>{};
+            if constexpr (ret == NoMessage)
+                return Message<NoMessage>{};
 
-        if (!socket->waitForReadyRead())
-            return std::nullopt;
+            if (!socket->waitForReadyRead())
+                return std::nullopt;
 
-        auto gotRaw = socket->readAll();
-        auto got = Message<ret>::parseJson(qUncompress(gotRaw));
+            auto gotRaw = socket->readAll();
+            auto got = Message<ret>::parseJson(qUncompress(gotRaw));
 
-        if(!got.has_value())
-            return std::nullopt;
+            if(!got.has_value())
+                return std::nullopt;
 
-        if (!std::all_of(verificators.cbegin(), verificators.cend(),
-                        [&](auto fn) { return fn(got.value());}))
-            return std::nullopt;
+            if (!std::all_of(verificators.cbegin(), verificators.cend(),
+                            [&](auto fn) { return fn(got.value());}))
+                return std::nullopt;
 
-        return got;
+            return got;
+        });
     }
 
     template<QueryDirection T = direct,
