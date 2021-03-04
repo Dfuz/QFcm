@@ -22,25 +22,41 @@ enum QueryDirection {
 template<MessageType ret>
 using Verificator = std::function<bool(const Message<ret> &)>;
 
-struct SharedSocket {
-    SharedSocket(std::shared_ptr<QTcpSocket> _socket): socket(_socket) {}
-protected:
-    std::shared_ptr<QTcpSocket> socket;
-};
-
-template<QueryDirection direct, MessageType to, MessageType ret>
-struct QueryFull: public SharedSocket {
-    QueryFull(std::shared_ptr<QTcpSocket> _socket, const Message<to> _msg):
-        SharedSocket(_socket), msg(_msg)
+template<QueryDirection direct, MessageType to = NoMessage, MessageType ret = NoMessage>
+struct Query {
+    Query(std::shared_ptr<QTcpSocket> _socket):
+        socket(_socket)
+    {}
+    Query(std::shared_ptr<QTcpSocket> _socket, const Message<to> _msg):
+        socket(_socket), msg(_msg)
     {}
 
-    template<QueryDirection T = direct,
-             std::enable_if_t<T == QueryDirection::Bidirectional, bool> = true>
-    std::optional<Message<ret>> invoke() noexcept {
-        auto toSend = qCompress(msg.toJson(), compressonLevel);
-        sendData(toSend);
+    template<MessageType newTo>
+    constexpr Query<direct, newTo, ret> toSend(const Message<newTo> & _msg) noexcept {
+        return {socket, _msg};
+    };
 
-        auto gotRaw = getData();
+    template<MessageType newRet>
+    constexpr Query<direct, to, newRet> toGet() noexcept {
+        return {socket, msg};
+    };
+
+    template<QueryDirection T = direct,
+             std::enable_if_t<T == Bidirectional, bool> = true>
+    constexpr std::optional<Message<ret>> invoke() noexcept {
+
+        if constexpr (to != NoMessage) {
+            auto toSend = qCompress(msg.toJson(), compressonLevel);
+            socket->write(toSend);
+        }
+
+        if constexpr (ret == NoMessage)
+            return Message<NoMessage>{};
+
+        if (!socket->waitForReadyRead())
+            return std::nullopt;
+
+        auto gotRaw = socket->readAll();
         auto got = Message<ret>::parseJson(qUncompress(gotRaw));
 
         if(!got.has_value())
@@ -54,63 +70,33 @@ struct QueryFull: public SharedSocket {
     }
 
     template<QueryDirection T = direct,
-             std::enable_if_t<T == QueryDirection::Unidirectional, bool> = true>
-    std::optional<Message<MessageType::NoMessage>> invoke() noexcept {
+             std::enable_if_t<T == Unidirectional, bool> = true>
+    constexpr Message<NoMessage> invoke() noexcept {
+
+        if constexpr (to != NoMessage) {
+            auto toSend = qCompress(msg.toJson(), compressonLevel);
+            socket->write(toSend);
+        }
+
         return {};
     }
 
-    constexpr void setVerificator(Verificator<ret> verFn) noexcept {
+    constexpr Query& setVerificator(Verificator<ret> verFn) noexcept {
         verificators.push_back(verFn);
+        return *this;
     }
-    constexpr void setCompression(int newLevel) noexcept {
+    constexpr Query& setCompression(int newLevel) noexcept {
         compressonLevel = newLevel;
+        return *this;
     }
 
+    friend class fcmanager_tests;
+
 private:
+    std::shared_ptr<QTcpSocket> socket;
     Message<to> msg;
     std::vector<Verificator<ret>> verificators;
     int compressonLevel = -1;
-
-    //FIXME: implement
-    void sendData(const QByteArray &data) {
-        Q_UNUSED(data);
-    }
-
-    //FIXME: implement
-    QByteArray getData() {
-        return {};
-    }
-};
-
-template<QueryDirection direct, MessageType ret>
-struct QueryCanGet: public SharedSocket {
-    template<MessageType to>
-    QueryFull<direct, to, ret> toSend(const Message<to> & msg) noexcept {
-        return {socket, msg};
-    };
-};
-
-template<QueryDirection direct, MessageType to>
-struct QueryCanSend: public SharedSocket {
-    Message<to> msg;
-
-    template<MessageType ret>
-    QueryFull<direct, to, ret> toGet() noexcept {
-        return {socket, msg};
-    };
-};
-
-template<QueryDirection direct>
-struct QueryBase: public SharedSocket {
-    template<MessageType to>
-    QueryCanSend<direct, to> toSend(const Message<to> &msg) noexcept {
-        return {socket, msg};
-    };
-
-    template<MessageType ret>
-    QueryCanGet<direct, ret> toGet() noexcept {
-        return {socket};
-    };
 };
 
 struct QueryBuilder {
@@ -122,20 +108,20 @@ public:
         socket = std::make_shared<QTcpSocket>(skt);
     }
 
-    template<QueryDirection direct = QueryDirection::Bidirectional>
-    QueryBase<direct> makeQuery() noexcept {
+    template<QueryDirection direct = Bidirectional>
+    Query<direct> makeQuery() noexcept {
         return {socket};
     };
 
     template<MessageType to>
-    QueryFull<Unidirectional, to, NoMessage> onlySend(const Message<to> & msg) noexcept {
+    Query<Unidirectional, to, NoMessage> onlySend(const Message<to> & msg) noexcept {
         return makeQuery<Unidirectional>()
                 .toGet<NoMessage>()
                 .toSend<to>(msg);
     }
 
     template<MessageType ret>
-    QueryFull<Bidirectional, NoMessage, ret> onlyGet() noexcept {
+    Query<Bidirectional, NoMessage, ret> onlyGet() noexcept {
         return makeQuery<Bidirectional>()
                 .toSend<NoMessage>({})
                 .toGet<ret>();

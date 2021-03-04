@@ -53,48 +53,66 @@ private slots:
 
     void testQueruBuilder()
     {
-        auto builder = Utils::QueryBuilder{new QTcpSocket()};
+        QTcpSocket* sender = new QTcpSocket();
+        //FIXME: как то протестить сокет
+        sender->bind(4000);
+        auto builder = Utils::QueryBuilder{std::move(sender)};
+        QTcpSocket reciver;
+        reciver.bind(5000);
 
         QMap<QString, QVariant> payload {
             std::pair{"test1", "testmsg"},
             std::pair{"test2", "testmsg"},
             std::pair{"test3", "testmsg"}
         };
-
         auto msg = Utils::TestMessage{payload};
-        auto test1 = builder.makeQuery()
-                .toSend(msg)
-                .toGet<Utils::Data>();
 
-        auto test2 = builder.makeQuery()
-               .toGet<Utils::Data>()
-               .toSend(msg)
-               .invoke();
+        auto write_data = [&](bool compress = false) {
+            reciver.write(compress ? qCompress(msg.toJson()) : msg.toJson());
+        };
 
-        auto test3 = builder.makeQuery<Utils::Unidirectional>()
-               .toSend(msg)
-               .toGet<Utils::Test>()
-               .invoke();
+        auto read_data = [&]() {
+            reciver.waitForReadyRead();
+            return qUncompress(reciver.readAll());
+        };
+
+        Q_UNUSED(read_data);
+
+//        Должны тестить в отдельном потоке...
+//        auto test1 = builder.makeQuery()
+//               .toGet<Utils::Test>()
+//               .toSend(msg)
+//               .invoke();
+
+//        read_data();
+//        write_data();
 
         auto query1 = builder.onlySend(msg);
+
+
         auto query2 = builder.onlyGet<Utils::Test>();
 
-        query1.setVerificator([](const auto &msg) {
-            Q_UNUSED(msg);
-            return true;
-        });
+        auto verificator = [&](const Utils::Message<Utils::Test> &msg) -> bool {
+            return std::equal(msg.payload.cbegin(), msg.payload.cend(), payload.cbegin());
+        };
 
-        auto verificator = [](const Utils::Message<Utils::Test> &msg) -> bool {
+        auto verificator_fail = [&](const Utils::Message<Utils::Test> &msg) -> bool {
             Q_UNUSED(msg);
-            return true;
+            return false;
         };
 
         query2.setVerificator(verificator);
+        write_data();
         auto test4 = query2.invoke();
-        if (!test4.has_value()) qInfo()<<"got none";
+        QVERIFY(test4.has_value());
+
+        query2.setVerificator(verificator_fail);
+        write_data();
+        auto test5 = query2.invoke();
+        QVERIFY(!test5.has_value());
 
 //        query1.setVerificator(verificator);
-//        НЕ сработает так как не совпадает по типам, я на хайпееееее...
+//        НЕ сработает так как не совпадает по типам
 
     }
 };
