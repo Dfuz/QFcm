@@ -52,4 +52,12 @@ using ServiceMessage = Message<MessageType::Service>;
 
 }
 
+template<Utils::MessageType type>
+QDebug operator<<(QDebug dbg, const Utils::Message<type> &message)
+{
+    dbg.nospace()<<"Type: "<<type;
+    dbg.nospace()<<"Payload: "<<message.payload;
+    return dbg.maybeSpace();
+}
+
 #endif // MESSAGEBUILDER_H

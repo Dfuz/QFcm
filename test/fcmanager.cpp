@@ -94,11 +94,11 @@ private slots:
             auto read_data = [&]() {
                 connection->waitForReadyRead();
                 auto data = qUncompress(connection->readAll());
-                qInfo()<<"server: readed data: "<<data;
+                qDebug()<<"server: readed data: "<<data;
             };
 
             auto write_data = [&](bool compress = false) {
-                qInfo()<<"server: sended test msg";
+                qDebug()<<"server: sended test msg";
                 connection->write(compress ? qCompress(msg.toJson()) : msg.toJson());
                 connection->waitForBytesWritten();
             };
@@ -154,8 +154,7 @@ private slots:
         QVERIFY(!test3.has_value());
 
         sender->close();
-        thread.waitForFinished();
-        QVERIFY(thread.isFinished());
+        QVERIFY(thread.result());
     }
 };
 
