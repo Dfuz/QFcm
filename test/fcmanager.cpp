@@ -1,6 +1,7 @@
 #include <QtTest>
 #include <QIODevice>
 #include <QFile>
+#include <QtConcurrent/QtConcurrent>
 
 #include "common/utils.h"
 #include "fcmanager.h"
@@ -51,15 +52,28 @@ private slots:
         QFile::remove(file.fileName());
     }
 
+    void testMessageBuilder()
+    {
+        QMap<QString, QVariant> payload {
+            std::pair{"test1", "testmsg"},
+            std::pair{"test2", "testmsg"},
+            std::pair{"test3", "testmsg"}
+        };
+        auto msg = Utils::TestMessage{payload};
+        auto exp = QByteArray{R"({"test1":"testmsg","test2":"testmsg","test3":"testmsg","type":2})"};
+        QCOMPARE(msg.toJson(), exp);
+        QMap<QString, QVariant> payload2 {
+            std::pair{"type", 1},
+            std::pair{"test2", "testmsg"},
+            std::pair{"test3", "testmsg"}
+        };
+        auto msg2 = Utils::ServiceMessage{payload2};
+        auto exp2 = QByteArray{R"({"test2":"testmsg","test3":"testmsg","type":0})"};
+        QCOMPARE(msg2.toJson(), exp2);
+    }
+
     void testQueruBuilder()
     {
-        QTcpSocket* sender = new QTcpSocket();
-        //FIXME: как то протестить сокет
-        sender->bind(4000);
-        auto builder = Utils::QueryBuilder{std::move(sender)};
-        QTcpSocket reciver;
-        reciver.bind(5000);
-
         QMap<QString, QVariant> payload {
             std::pair{"test1", "testmsg"},
             std::pair{"test2", "testmsg"},
@@ -67,47 +81,81 @@ private slots:
         };
         auto msg = Utils::TestMessage{payload};
 
-        auto write_data = [&](bool compress = false) {
-            reciver.write(compress ? qCompress(msg.toJson()) : msg.toJson());
-        };
+        qDebug()<<"starting thread";
+        auto thread = QtConcurrent::run([&]() -> bool {
+            QTcpServer* server = new QTcpServer();
+            server->listen(QHostAddress::LocalHost, 4001);
+            qDebug()<<"server: waiting connection";
+            if(!server->waitForNewConnection(3000))
+                return false;
+            auto connection = server->nextPendingConnection();
+            qDebug()<<"server: got connection";
 
-        auto read_data = [&]() {
-            reciver.waitForReadyRead();
-            return qUncompress(reciver.readAll());
-        };
+            auto read_data = [&]() {
+                connection->waitForReadyRead();
+                auto data = qUncompress(connection->readAll());
+                qInfo()<<"server: readed data: "<<data;
+            };
+
+            auto write_data = [&](bool compress = false) {
+                qInfo()<<"server: sended test msg";
+                connection->write(compress ? qCompress(msg.toJson()) : msg.toJson());
+                connection->waitForBytesWritten();
+            };
+
+            //test1
+            read_data();
+            write_data();
+
+            //test2
+            write_data();
+
+            //test3
+            write_data();
+
+            server->close();
+            return true;
+        });
+
+        QTcpSocket* sender = new QTcpSocket();
+        sender->connectToHost(QHostAddress::LocalHost, 4001);
+        qDebug()<<"sender: waiting to connect";
+        QVERIFY(sender->waitForConnected());
+        qDebug()<<"sender: got connection";
+
+        auto builder = Utils::QueryBuilder{std::move(sender)};
 
         auto test1 = builder.makeQuery()
                .toGet<Utils::Test>()
                .toSend(msg)
                .invoke();
 
-        read_data();
-        write_data();
-        QVERIFY(test1.result().has_value());
+        QVERIFY(test1.has_value());
 
-        auto query1 = builder.onlySend(msg);
-
-        auto query2 = builder.onlyGet<Utils::Test>();
+        auto query1 = builder.onlyGet<Utils::Test>();
 
         auto verificator = [&](const Utils::Message<Utils::Test> &msg) -> bool {
+            qDebug()<<"verificator: verifying...";
             return std::equal(msg.payload.cbegin(), msg.payload.cend(), payload.cbegin());
         };
 
         auto verificator_fail = [&](const Utils::Message<Utils::Test> &msg) -> bool {
+            qDebug()<<"verificator: verificator_failing...";
             Q_UNUSED(msg);
             return false;
         };
 
-        query2.setVerificator(verificator);
-        write_data();
-        auto test4 = query2.invoke();
-        QVERIFY(test4.result().has_value());
+        query1.setVerificator(verificator);
+        auto test2 = query1.invoke();
+        QVERIFY(test2.has_value());
 
-        query2.setVerificator(verificator_fail);
-        write_data();
-        auto test5 = query2.invoke();
-        QVERIFY(!test5.result().has_value());
+        query1.setVerificator(verificator_fail);
+        auto test3 = query1.invoke();
+        QVERIFY(!test3.has_value());
 
+        sender->close();
+        thread.waitForFinished();
+        QVERIFY(thread.isFinished());
     }
 };
 

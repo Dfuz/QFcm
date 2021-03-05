@@ -2,8 +2,6 @@
 #define QUERYBUILDER_H
 
 #include <QTcpSocket>
-#include <QtConcurrent/QtConcurrent>
-
 #include <algorithm>
 #include <memory>
 #include <type_traits>
@@ -47,32 +45,34 @@ struct Query {
 
     template<QueryDirection T = direct,
              std::enable_if_t<T == Bidirectional, bool> = true>
-    constexpr QFuture<InvokeReturn<ret>> invoke() noexcept {
+    constexpr InvokeReturn<ret> invoke() noexcept {
+        if constexpr (to != NoMessage) {
+            auto toSend = qCompress(msg.toJson(), compressonLevel);
+            socket->write(toSend);
+            qDebug()<<"Query: sended";
+        }
 
-        return QtConcurrent::run([&] () -> InvokeReturn<ret> {
-            if constexpr (to != NoMessage) {
-                auto toSend = qCompress(msg.toJson(), compressonLevel);
-                socket->write(toSend);
-            }
+        if constexpr (ret == NoMessage)
+            return Message<NoMessage>{};
 
-            if constexpr (ret == NoMessage)
-                return Message<NoMessage>{};
+        qDebug()<<"Query: waiting to read";
 
-            if (!socket->waitForReadyRead())
-                return std::nullopt;
+        if (!socket->waitForReadyRead())
+            return std::nullopt;
 
-            auto gotRaw = socket->readAll();
-            auto got = Message<ret>::parseJson(qUncompress(gotRaw));
+        auto gotRaw = socket->readAll();
 
-            if(!got.has_value())
-                return std::nullopt;
+        qDebug()<<"Query: readed";
+        auto got = Message<ret>::parseJson(qUncompress(gotRaw));
 
-            if (!std::all_of(verificators.cbegin(), verificators.cend(),
-                            [&](auto fn) { return fn(got.value());}))
-                return std::nullopt;
+        if(!got.has_value())
+            return std::nullopt;
 
-            return got;
-        });
+        if (!std::all_of(verificators.cbegin(), verificators.cend(),
+                        [&](auto fn) { return fn(got.value());}))
+            return std::nullopt;
+
+        return got;
     }
 
     template<QueryDirection T = direct,
@@ -83,6 +83,8 @@ struct Query {
             auto toSend = qCompress(msg.toJson(), compressonLevel);
             socket->write(toSend);
         }
+
+        qDebug()<<"Query: sended";
 
         return {};
     }
