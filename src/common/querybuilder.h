@@ -164,9 +164,13 @@ struct QueryBuilder {
 public:
     QueryBuilder(): socket() {}
     QueryBuilder(QTcpSocket *skt): socket(skt) {}
-    QueryBuilder(qintptr ptrskt) noexcept {
+    QueryBuilder(qintptr ptrskt)
+    {
         QTcpSocket* skt = new QTcpSocket();
-        skt->setSocketDescriptor(ptrskt);
+        if (!skt->setSocketDescriptor(ptrskt))
+        {
+            throw std::runtime_error("setDescriptor failed");
+        }
         socket = std::make_shared<QTcpSocket>(skt);
     }
 
@@ -206,7 +210,6 @@ public:
                 .toGet<ret>();
     }
 
-private:
     std::shared_ptr<QTcpSocket> socket;
 };
 

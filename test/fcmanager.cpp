@@ -91,11 +91,8 @@ private slots:
         };
         auto msg = Utils::TestMessage{payload};
 
-        auto currThread = QThread::currentThread();
-
         qDebug()<<"starting thread";
         auto thread = QtConcurrent::run([&]() -> bool {
-            currThread->sleep(0);
             QTcpServer* server = new QTcpServer();
             server->listen(QHostAddress::LocalHost, 4001);
             qDebug()<<"server: waiting connection";
@@ -130,6 +127,7 @@ private slots:
             server->close();
             return true;
         });
+        QThread::currentThread()->msleep(600);
 
         QTcpSocket* sender = new QTcpSocket();
         sender->connectToHost(QHostAddress::LocalHost, 4001);

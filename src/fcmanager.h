@@ -11,6 +11,7 @@
 #include <QMutex>
 #include <QMutexLocker>
 #include <QRegularExpression>
+#include <QtConcurrent/QtConcurrent>
 #include <chrono>
 #include <map>
 #include "threads/fcmWorker.h"
@@ -18,29 +19,21 @@
 #include "agents/agentsinfo.h"
 
 using namespace std::chrono;
+class FcmWorker;
 
 /**
  * TODO: 
  *  конфигурация ip, port, число подключений и тд...
  */
-
-struct FCConfig
-{
-    QHostAddress addr{QHostAddress::Null};
-    std::chrono::milliseconds timeOut{0};
-    int maxNumberOfAgents{0};
-    int port{0};
-};
-
 class FCManager final : public QTcpServer
 {
     Q_OBJECT
 
 public:
     explicit FCManager(QObject *parent = 0);
-
     void readConfig(QString settings_path = "conf.json");
     bool startServer();
+    static int getCompression(void);
     friend class fcmanager_tests;
 
 protected:
@@ -49,8 +42,9 @@ protected:
 private:
     QHostAddress addr{QHostAddress::Null};
     std::chrono::milliseconds timeOut{0};
-    int maxNumberOfAgents{0};
     int currNumberOfAgents{0};
+    int maxNumberOfAgents{0};
+    inline static int compression;
     int port{0};
 
     //qint32 is QHostAddress::toIPv4Address()

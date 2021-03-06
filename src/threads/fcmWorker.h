@@ -4,18 +4,25 @@
 #include <QThread>
 #include <QTcpSocket>
 #include <QDebug>
+#include <type_traits>
+#include "fcmanager.h"
 #include "agents/agentsinfo.h"
+#include "common/querybuilder.h"
+#include "common/messagebuilder.h"
+
+class FCManager;
 
 class FcmWorker : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit FcmWorker(qintptr ID, QObject *parent = 0);
+    FcmWorker(qintptr ID, QObject *parent = 0);
     void doSomeWork();
 
 private:
     std::optional<FCM::AgentVariant> performHandshake();
+    Utils::QueryBuilder query;
 
 signals:
     void resultReady(const QString& result);
