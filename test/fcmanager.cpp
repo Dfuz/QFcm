@@ -62,6 +62,7 @@ private slots:
         auto msg = Utils::TestMessage{payload};
         auto exp = QByteArray{R"({"test1":"testmsg","test2":"testmsg","test3":"testmsg","type":2})"};
         QCOMPARE(msg.toJson(), exp);
+
         QMap<QString, QVariant> payload2 {
             std::pair{"type", 1},
             std::pair{"test2", "testmsg"},
@@ -70,6 +71,15 @@ private slots:
         auto msg2 = Utils::ServiceMessage{payload2};
         auto exp2 = QByteArray{R"({"test2":"testmsg","test3":"testmsg","type":0})"};
         QCOMPARE(msg2.toJson(), exp2);
+
+        auto msg3 = Utils::ServiceMessage{R"(
+            {
+                "field1": 1,
+                "field2": 2
+            }
+        )"};
+        auto exp3 = QByteArray{R"({"field1":1,"field2":2,"type":0})"};
+        QCOMPARE(msg3.toJson(), exp3);
     }
 
     void testQueruBuilder()

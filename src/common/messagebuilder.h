@@ -21,6 +21,16 @@ enum MessageType
 template<MessageType type>
 struct Message
 {
+    Message() {}
+    Message(const QString &str) {
+        QJsonParseError err;
+        auto object = QJsonDocument::fromJson(str.toUtf8(), &err).object();
+        payload = object.toVariantMap();
+        qDebug()<<"parsed "<<payload<<" with obj "<<object;
+        qDebug()<<"error "<<err.errorString();
+    }
+    Message(const QVariantMap& map): payload(map) {}
+    Message(const QJsonObject& obj): payload(obj.toVariantMap()) {}
     QVariantMap payload;
 
     QByteArray toJson() const
