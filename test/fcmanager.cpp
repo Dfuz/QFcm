@@ -81,8 +81,11 @@ private slots:
         };
         auto msg = Utils::TestMessage{payload};
 
+        auto currThread = QThread::currentThread();
+
         qDebug()<<"starting thread";
         auto thread = QtConcurrent::run([&]() -> bool {
+            currThread->sleep(0);
             QTcpServer* server = new QTcpServer();
             server->listen(QHostAddress::LocalHost, 4001);
             qDebug()<<"server: waiting connection";
@@ -93,14 +96,15 @@ private slots:
 
             auto read_data = [&]() {
                 connection->waitForReadyRead();
-                auto data = qUncompress(connection->readAll());
+                auto data = connection->readAll();
                 qDebug()<<"server: readed data: "<<data;
             };
 
-            auto write_data = [&](bool compress = false) {
-                qDebug()<<"server: sended test msg";
-                connection->write(compress ? qCompress(msg.toJson()) : msg.toJson());
+            auto write_data = [&]() {
+                auto toSend = qCompress(msg.toJson(), 0);
+                connection->write(toSend);
                 connection->waitForBytesWritten();
+                qDebug()<<"server: sended "<<toSend<<"\nbytes "<<toSend.size();
             };
 
             //test1

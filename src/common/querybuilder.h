@@ -2,6 +2,8 @@
 #define QUERYBUILDER_H
 
 #include <QTcpSocket>
+#include <QDataStream>
+#include <QBuffer>
 #include <algorithm>
 #include <memory>
 #include <type_traits>
@@ -52,9 +54,8 @@ struct Query {
      * \return
      */
     template<MessageType newRet>
-    constexpr Query<direct, to, newRet> toGet(bool uncompression = false) noexcept {
-        Query<direct, to, newRet> retvar{socket, msg};
-        return retvar.setUnCompression(uncompression);
+    constexpr Query<direct, to, newRet> toGet() noexcept {
+        return {socket, msg};
     };
 
     /*!
@@ -63,14 +64,16 @@ struct Query {
      */
     template<QueryDirection T = direct,
              std::enable_if_t<T == Bidirectional, bool> = true>
-    constexpr InvokeReturn<ret> invoke() noexcept {
+    InvokeReturn<ret> invoke() noexcept {
 
         // Участок отправки сообщения
         if constexpr (to != NoMessage) {
             auto toSend = qCompress(msg.toJson(), compressionLevel);
-            socket->write(toSend);
-            socket->waitForBytesWritten();
-            qDebug()<<"Query: sended";
+            writeMessage(toSend);
+            if (!socket->waitForBytesWritten()) {
+                qDebug()<<"Query: failed to write";
+                return std::nullopt;
+            }
         }
 
         // Участок приема сообщения
@@ -82,17 +85,14 @@ struct Query {
         if (!socket->waitForReadyRead())
             return std::nullopt;
 
-        auto gotRaw = socket->readAll();
+        auto gotRaw = readMessage();
 
-        qDebug()<<"Query: readed";
-        auto got = Message<ret>::parseJson((uncompress)? qUncompress(gotRaw) : gotRaw);
+        auto got = Message<ret>::parseJson(qUncompress(gotRaw));
 
         if(!got.has_value()) {
             qDebug()<<"Query: failed to parse: "<<gotRaw.data();
             return std::nullopt;
         }
-
-        qDebug()<<"Query: got: "<<got.value();
 
         // Проходим по верификаторам
         if (!std::all_of(verificators.cbegin(), verificators.cend(),
@@ -109,11 +109,10 @@ struct Query {
      */
     template<QueryDirection T = direct,
              std::enable_if_t<T == Unidirectional, bool> = true>
-    constexpr Message<NoMessage> invoke() noexcept {
+    Message<NoMessage> invoke() noexcept {
 
         if constexpr (to != NoMessage) {
             auto toSend = qCompress(msg.toJson(), compressionLevel);
-            socket->write(toSend);
             socket->waitForBytesWritten();
         }
 
@@ -140,15 +139,6 @@ struct Query {
         compressionLevel = newLevel;
         return *this;
     }
-    /*!
-     * \brief setUnCompression - задаем декомпрессию
-     * \param newFlag
-     * \return
-     */
-    constexpr Query& setUnCompression(bool newFlag) noexcept {
-        uncompress = newFlag;
-        return *this;
-    }
 
     friend class fcmanager_tests;
 
@@ -156,8 +146,18 @@ private:
     std::shared_ptr<QTcpSocket> socket;
     Message<to> msg;
     std::vector<Verificator<ret>> verificators;
-    bool uncompress = false;
     int compressionLevel = 0;
+
+    void writeMessage(const QByteArray &toSend) {
+        socket->write(toSend);
+        qDebug()<<"Query: sended "<<toSend<<"\nbytes "<<toSend.size();
+    }
+
+    QByteArray readMessage() {
+        QByteArray retval = socket->readAll();
+        qDebug()<<"Query: readed "<<retval;
+        return retval;
+    }
 };
 
 struct QueryBuilder {
