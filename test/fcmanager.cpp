@@ -91,15 +91,25 @@ private slots:
         };
         auto msg = Utils::TestMessage{payload};
 
-        qDebug()<<"starting thread";
-        auto thread = QtConcurrent::run([&]() -> bool {
+
+        QEventLoop* loop = new QEventLoop;
+        qDebug() << "starting thread";
+        QFuture<bool> thread = QtConcurrent::run([&]() -> bool {
             QTcpServer* server = new QTcpServer();
             server->listen(QHostAddress::LocalHost, 4001);
-            qDebug()<<"server: waiting connection";
+            qDebug() << "server: waiting connection";
+
+            // synchronization
+            if (loop)
+            {
+                if (loop->isRunning()) loop->quit();
+                delete loop;
+            }
+
             if(!server->waitForNewConnection(3000))
                 return false;
             auto connection = server->nextPendingConnection();
-            qDebug()<<"server: got connection";
+            qDebug() << "server: got connection";
 
             auto read_data = [&]() {
                 connection->waitForReadyRead();
@@ -111,29 +121,33 @@ private slots:
                 auto toSend = qCompress(msg.toJson(), 0);
                 connection->write(toSend);
                 connection->waitForBytesWritten();
-                qDebug()<<"server: sended "<<toSend<<"\nbytes "<<toSend.size();
+                qDebug() << "server: sended " << toSend
+                         << "\nbytes " << toSend.size();
             };
 
             //test1
             read_data();
             write_data();
+            QThread::msleep(10);
 
             //test2
             write_data();
+            QThread::msleep(10);
 
             //test3
             write_data();
+            QThread::msleep(10);
 
             server->close();
             return true;
         });
-        QThread::currentThread()->msleep(600);
+        if (loop) loop->exec();
 
         QTcpSocket* sender = new QTcpSocket();
         sender->connectToHost(QHostAddress::LocalHost, 4001);
-        qDebug()<<"sender: waiting to connect";
+        qDebug() << "sender: waiting to connect";
         QVERIFY(sender->waitForConnected());
-        qDebug()<<"sender: got connection";
+        qDebug() << "sender: got connection";
 
         auto builder = Utils::QueryBuilder{std::move(sender)};
 
@@ -147,12 +161,12 @@ private slots:
         auto query1 = builder.onlyGet<Utils::Test>();
 
         auto verificator = [&](const Utils::Message<Utils::Test> &msg) -> bool {
-            qDebug()<<"verificator: verifying...";
+            qDebug() << "verificator: verifying...";
             return std::equal(msg.payload.cbegin(), msg.payload.cend(), payload.cbegin());
         };
 
         auto verificator_fail = [&](const Utils::Message<Utils::Test> &msg) -> bool {
-            qDebug()<<"verificator: verificator_failing...";
+            qDebug() << "verificator: verificator_failing...";
             Q_UNUSED(msg);
             return false;
         };
