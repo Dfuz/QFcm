@@ -4,11 +4,14 @@
 #include <QVariant>
 #include <QJsonObject>
 #include <QJsonDocument>
+#include <QDebug>
 #include <memory>
 
-namespace Utils {
+namespace Utils
+{
 
-enum MessageType {
+enum MessageType
+{
     Service,
     Data,
     Test,
@@ -16,19 +19,22 @@ enum MessageType {
 };
 
 template<MessageType type>
-struct Message {
+struct Message
+{
     QVariantMap payload;
 
-    QByteArray toJson() const {
+    QByteArray toJson() const
+    {
         QVariantMap res{payload};
         res.insert("type", static_cast<int>(type));
         return QJsonDocument{QJsonObject::fromVariantMap(res)}.toJson(QJsonDocument::Compact);
     }
 
-    static std::optional<Message<type>> parseJson(const QByteArray &data) noexcept {
+    static std::optional<Message<type>> parseJson(const QByteArray &data) noexcept
+    {
         auto msg = QJsonDocument::fromJson(data);
 
-        qDebug()<<"parsing Json";
+        qDebug() << "parsing Json";
 
         if (!msg.isObject())
             return std::nullopt;
@@ -53,10 +59,10 @@ using ServiceMessage = Message<MessageType::Service>;
 }
 
 template<Utils::MessageType type>
-QDebug operator<<(QDebug dbg, const Utils::Message<type> &message)
+QDebug operator<<(QDebug dbg, const Utils::Message<type>& message)
 {
-    dbg.nospace()<<"Type: "<<type;
-    dbg.nospace()<<"Payload: "<<message.payload;
+    dbg.nospace() << "Type: " << type;
+    dbg.nospace() << "Payload: " << message.payload;
     return dbg.maybeSpace();
 }
 
