@@ -3,6 +3,7 @@
 #include <QFile>
 #include <QtConcurrent/QtConcurrent>
 
+#include "common/messagebuilder.h"
 #include "common/utils.h"
 #include "fcmanager.h"
 #include "common/querybuilder.h"
@@ -109,33 +110,22 @@ private slots:
             if(!server->waitForNewConnection(3000))
                 return false;
             auto connection = server->nextPendingConnection();
+            auto builder = Utils::QueryBuilder{std::move(connection)};
             qDebug() << "server: got connection";
 
-            auto read_data = [&]() {
-                connection->waitForReadyRead();
-                auto data = connection->readAll();
-                qDebug()<<"server: readed data: "<<data;
-            };
-
-            auto write_data = [&]() {
-                auto toSend = qCompress(msg.toJson(), 0);
-                connection->write(toSend);
-                connection->waitForBytesWritten();
-                qDebug() << "server: sended " << toSend
-                         << "\nbytes " << toSend.size();
-            };
-
             //test1
-            read_data();
-            write_data();
+            builder.makeQueryRead()
+                   .toGet<Utils::Test>()
+                   .toSend(msg)
+                   .invoke();
             QThread::msleep(10);
 
             //test2
-            write_data();
+            builder.onlySend(msg).invoke();
             QThread::msleep(10);
 
             //test3
-            write_data();
+            builder.onlySend(msg).invoke();
             QThread::msleep(10);
 
             server->close();
@@ -161,8 +151,9 @@ private slots:
         auto query1 = builder.onlyGet<Utils::Test>();
 
         auto verificator = [&](const Utils::Message<Utils::Test> &msg) -> bool {
-            qDebug() << "verificator: verifying...";
-            return std::equal(msg.payload.cbegin(), msg.payload.cend(), payload.cbegin());
+            auto res = std::equal(msg.payload.cbegin(), msg.payload.cend(), payload.cbegin());
+            qDebug() << "verificator: res "<<res;
+            return res;
         };
 
         auto verificator_fail = [&](const Utils::Message<Utils::Test> &msg) -> bool {

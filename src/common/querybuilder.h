@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <memory>
 #include <optional>
+#include <qdebug.h>
 #include <type_traits>
 #include <variant>
 #include <functional>
@@ -88,7 +89,7 @@ struct Query {
 
         auto got = readMessage();
 
-        if (got.has_value())
+        if (!got.has_value())
             return std::nullopt;
 
         writeMessage();
@@ -189,7 +190,7 @@ private:
             qDebug()<<"Query: failed to parse: "<<gotRaw.data();
             return std::nullopt;
         }
-
+        
         if (!checkVerificators(got.value()))
             return std::nullopt;
 
