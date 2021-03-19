@@ -198,12 +198,12 @@ private slots:
         thread->start();
 
         // Настройка клиента и его подключение к серверу
-        auto sender = std::make_unique<QTcpSocket>();
+        auto sender = std::make_shared<QTcpSocket>();
         sender->connectToHost("127.0.0.1", 4002);
         qDebug() << "sender: waiting to connect";
         QVERIFY2(sender->waitForConnected(-1), sender->errorString().toStdString().c_str());
         qDebug() << "sender: got connection";
-        auto builder = Utils::QueryBuilder{std::move(sender.get())};
+        auto builder = Utils::QueryBuilder{sender};
 
         // Проверка рукопожатия
         auto message = Utils::ServiceMessage{QString(R"({"who":"agent"})")};

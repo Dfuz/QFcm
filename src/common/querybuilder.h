@@ -210,6 +210,7 @@ private:
 struct QueryBuilder {
 public:
     QueryBuilder(): socket() {}
+    QueryBuilder(std::shared_ptr<QTcpSocket> skt): socket(skt) {}
     QueryBuilder(QTcpSocket *skt): socket(skt) {}
     QueryBuilder(qintptr ptrskt)
     {
