@@ -160,6 +160,8 @@ private:
         // Участок отправки сообщения
         if constexpr (to != NoMessage) {
             auto toSend = qCompress(msg.toJson(), compressionLevel);
+            quint16 size = toSend.size();
+            socket->write(reinterpret_cast<const char*>(&size), sizeof(quint16));
             socket->write(toSend);
             if (!socket->waitForBytesWritten()) {
                 qDebug()<<"Query: failed to write";
@@ -181,7 +183,8 @@ private:
         if (!socket->waitForReadyRead())
             return std::nullopt;
 
-        auto gotRaw = socket->readAll();
+        auto gotSize = socket->read(sizeof(quint16));
+        auto gotRaw = socket->read(reinterpret_cast<const quint16*>(gotSize.constData())[0]);
         qDebug()<<"Query: readed "<<gotRaw;
 
         auto got = Message<ret>::parseJson(qUncompress(gotRaw));
