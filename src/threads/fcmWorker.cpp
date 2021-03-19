@@ -57,12 +57,13 @@ void FcmWorker::readyRead()
     if (agent)
     {
         // AHTUNG!
-        std::visit([](auto&& arg)
+        std::visit([&](auto&& arg)
         {
             using T = std::decay_t<decltype (arg)>;
             if constexpr (std::is_same_v<T, FCM::Agent>)
             {
-
+                auto response = query.onlyGet<Utils::Data>().invoke();
+                // TODO: parse data
             }
         }, *agent);
     }
@@ -76,3 +77,5 @@ void FcmWorker::disconnected()
     qDebug() << query.socket->socketDescriptor() << " Disconnected";
     emit finished();
 }
+
+
