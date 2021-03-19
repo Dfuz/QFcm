@@ -173,6 +173,12 @@ private slots:
         sender->close();
         QVERIFY(thread.result());
     }
+
+    void testHandhake()
+    {
+        auto payload = QString(R"({"who":"agent"})");
+
+    }
 };
 
 QTEST_MAIN(fcmanager_tests)

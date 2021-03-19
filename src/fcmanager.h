@@ -13,6 +13,7 @@
 #include <QRegularExpression>
 #include <QtConcurrent/QtConcurrent>
 #include <chrono>
+#include <map>
 #include <QMap>
 #include "threads/fcmWorker.h"
 #include "common/agentdata.h"
@@ -48,8 +49,8 @@ private:
     int port{0};
 
     //qint32 is QHostAddress::toIPv4Address()
-    QMap<FcmWorker*, FCM::AgentVariant> agents;
-    QMap<QString, FCM::AgentVariant> allAgents;
+    std::map<FcmWorker*, FCM::AgentVariant> agents;
+    std::map<QString, FCM::AgentVariant> allAgents;
 
     QMutex agentsMutex;
 
