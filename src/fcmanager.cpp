@@ -11,10 +11,13 @@ bool FCManager::startServer()
     if(!this->listen(addr, port))
     {
         qDebug() << "Не удалось запустить сервер";
+        qDebug() << "Адрес: " << addr << " порт: " << port << "...";
+        qDebug() << "Ошибка: " << this->errorString();
     }
     else
     {
-        qDebug() << "Прослушивается порт " << port << "...";
+        qDebug() << "Сервер запустился";
+        qDebug() << "Адрес: " << addr << " порт: " << port << "...";
     }
     return true;
 }
@@ -27,10 +30,10 @@ int FCManager::getCompression()
 void FCManager::incomingConnection(qintptr socketDescriptor)
 {
     qDebug() << socketDescriptor << " Подключение...";
-    FcmWorker* threadWorker = new FcmWorker(socketDescriptor, this);
+    FcmWorker* threadWorker = new FcmWorker(socketDescriptor);
     QThread* thread = new QThread();
     threadWorker->moveToThread(thread);
-
+    qDebug() << "Запускается новый поток для обрабоки клиента...";
     connect(thread, &QThread::started, threadWorker, &FcmWorker::doSomeWork);
     connect(thread, &QThread::finished, threadWorker, &FcmWorker::deleteLater);
     connect(threadWorker, &FcmWorker::finished, thread, &QThread::quit);
@@ -45,6 +48,7 @@ void FCManager::incomingConnection(qintptr socketDescriptor)
     }, Qt::QueuedConnection);
 
     thread->start();
+    qDebug() << "[Main Thread]" << "[ID:" << QThread::currentThreadId() << "]" << "Поток запущен...";
     return;
 }
 

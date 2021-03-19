@@ -8,7 +8,7 @@ FcmWorker::FcmWorker(qintptr ID, QObject *parent) : QObject(parent)
 
 void FcmWorker::doSomeWork()
 {
-    qDebug() << "Поток запущен!";
+    qDebug() << "[Worker Thread]" << "[ID:" << QThread::currentThreadId() << "]" << "Поток запущен...";
 
     connect(query.socket.get(), &QTcpSocket::readyRead, this, &FcmWorker::readyRead, Qt::DirectConnection);
     connect(query.socket.get(), &QTcpSocket::disconnected, this, &FcmWorker::disconnected);

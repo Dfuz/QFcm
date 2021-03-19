@@ -179,7 +179,7 @@ private slots:
 
     void testHandhake()
     {
-        // Задание конфигурации сервера
+        //Задание конфигурации сервера
         QFile file{"conf.json"};
         file.open(QIODevice::Truncate | QIODevice::WriteOnly);
         QVERIFY(file.exists());
@@ -190,11 +190,13 @@ private slots:
         manager.readConfig(file.fileName());
 
         // Помещение сервера в отдельный поток и настройка сигналов/слотов
-        auto thread = std::make_unique<QThread>();
+        //auto thread = std::make_unique<QThread>();
+        QThread* thread = new QThread();
         QEXPECT_FAIL("", "As should be", Continue);
-        QCOMPARE(thread.get(), nullptr);
-        manager.moveToThread(thread.get());
-        connect(thread.get(), &QThread::started, &manager, &FCManager::startServer);
+        QCOMPARE(thread, nullptr);
+        manager.moveToThread(thread);
+        connect(thread, &QThread::started, &manager, &FCManager::startServer);
+        connect(thread, &QThread::finished, &manager, &FCManager::deleteLater);
         thread->start();
 
         // Настройка клиента и его подключение к серверу
@@ -212,6 +214,7 @@ private slots:
                .toSend(message)
                .invoke();
         QVERIFY(testMsg.has_value());
+        thread->quit();
     }
 };
 
