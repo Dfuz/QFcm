@@ -4,6 +4,8 @@
 FcmWorker::FcmWorker(qintptr ID, QObject *parent) : QObject(parent)
 {
     query.setSocketDescriptor(ID);
+    peerAddress = query.socket->peerAddress();
+    peerPort = query.socket->peerPort();
 }
 
 void FcmWorker::doSomeWork()
@@ -12,8 +14,8 @@ void FcmWorker::doSomeWork()
 
     connect(query.socket.get(), &QTcpSocket::readyRead, this, &FcmWorker::readyRead, Qt::DirectConnection);
     connect(query.socket.get(), &QTcpSocket::disconnected, this, &FcmWorker::disconnected);
-
-    qDebug() << query.socket->socketDescriptor() << " Client connected";
+    qDebug() << "[Worker Thread]" << "[ID:" << QThread::currentThreadId() << "]"
+             << "Клиент: " << peerAddress.toString() << ":" << peerPort << " подключился...";
 }
 
 std::optional<FCM::AgentVariant> FcmWorker::performHandshake(Utils::QueryBuilder &_query)
@@ -68,6 +70,7 @@ void FcmWorker::readyRead()
 
 void FcmWorker::disconnected()
 {
-    qDebug() << query.socket->socketDescriptor() << " Disconnected";
+    qDebug() << "[Worker Thread]" << "[ID:" << QThread::currentThreadId() << "]"
+             << "Клиент: " << peerAddress.toString() << ":" << peerPort << " отключился...";
     emit finished();
 }

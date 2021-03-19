@@ -3,6 +3,7 @@
 
 #include <QThread>
 #include <QTcpSocket>
+#include <QHostAddress>
 #include <QDebug>
 #include <type_traits>
 #include "agents/agentsinfo.h"
@@ -23,6 +24,8 @@ public:
 
 private:
     Utils::QueryBuilder query;
+    QHostAddress peerAddress;
+    quint16 peerPort;
 
 signals:
     void resultReady(const QString& result);

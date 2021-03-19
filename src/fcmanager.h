@@ -56,6 +56,7 @@ private:
 
 signals:
     void gotData(const QPair<qint32, Common::dataFromAgent> &);
+    void agentConnectedRetranslate(FCM::AgentVariant);
 
 private slots:
 };
