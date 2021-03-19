@@ -7,6 +7,7 @@
 #include "common/utils.h"
 #include "fcmanager.h"
 #include "common/querybuilder.h"
+#include "threads/fcmWorker.h"
 
 class fcmanager_tests: public QObject
 {
@@ -36,7 +37,7 @@ private slots:
     void settingsFile()
     {
         QFile file{"conf.json"};
-        if (file.exists()) file.open(QIODevice::Truncate | QIODevice::WriteOnly);
+        file.open(QIODevice::Truncate | QIODevice::WriteOnly);
 
         const auto DATA = R"({"address":"0.0.0.0", "max_agents":10, "port":4000, "polling_rate":"1m1s"})";
         QVERIFY(file.write(DATA) != -1);
@@ -150,13 +151,15 @@ private slots:
 
         auto query1 = builder.onlyGet<Utils::Test>();
 
-        auto verificator = [&](const Utils::Message<Utils::Test> &msg) -> bool {
+        auto verificator = [&](const Utils::Message<Utils::Test> &msg) -> bool
+        {
             auto res = std::equal(msg.payload.cbegin(), msg.payload.cend(), payload.cbegin());
             qDebug() << "verificator: res "<<res;
             return res;
         };
 
-        auto verificator_fail = [&](const Utils::Message<Utils::Test> &msg) -> bool {
+        auto verificator_fail = [&](const Utils::Message<Utils::Test> &msg) -> bool
+        {
             qDebug() << "verificator: verificator_failing...";
             Q_UNUSED(msg);
             return false;
@@ -176,8 +179,39 @@ private slots:
 
     void testHandhake()
     {
-        auto payload = QString(R"({"who":"agent"})");
+        // Задание конфигурации сервера
+        QFile file{"conf.json"};
+        file.open(QIODevice::Truncate | QIODevice::WriteOnly);
+        QVERIFY(file.exists());
+        const auto DATA = R"({"address":"127.0.0.1", "max_agents":10, "port":4002, "polling_rate":"1m1s"})";
+        QVERIFY(file.write(DATA) != -1);
+        file.close();
+        FCManager manager{};
+        manager.readConfig(file.fileName());
 
+        // Помещение сервера в отдельный поток и настройка сигналов/слотов
+        auto thread = std::make_unique<QThread>();
+        QEXPECT_FAIL("", "As should be", Continue);
+        QCOMPARE(thread.get(), nullptr);
+        manager.moveToThread(thread.get());
+        connect(thread.get(), &QThread::started, &manager, &FCManager::startServer);
+        thread->start();
+
+        // Настройка клиента и его подключение к серверу
+        auto sender = std::make_unique<QTcpSocket>();
+        sender->connectToHost("127.0.0.1", 4002);
+        qDebug() << "sender: waiting to connect";
+        QVERIFY2(sender->waitForConnected(-1), sender->errorString().toStdString().c_str());
+        qDebug() << "sender: got connection";
+        auto builder = Utils::QueryBuilder{std::move(sender.get())};
+
+        // Проверка рукопожатия
+        auto message = Utils::ServiceMessage{QString(R"({"who":"agent"})")};
+        auto testMsg = builder.makeQueryRead()
+               .toGet<Utils::Service>()
+               .toSend(message)
+               .invoke();
+        QVERIFY(testMsg.has_value());
     }
 };
 

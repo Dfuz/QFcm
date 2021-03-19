@@ -19,6 +19,7 @@ public:
     FcmWorker(qintptr ID, QObject *parent = 0);
     void doSomeWork();
     static std::optional<FCM::AgentVariant> performHandshake(Utils::QueryBuilder &);
+    friend class fcmanager_tests;
 
 private:
     Utils::QueryBuilder query;

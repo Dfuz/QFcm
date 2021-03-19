@@ -8,8 +8,6 @@ FCManager::FCManager(QObject *parent) :
 
 bool FCManager::startServer()
 {
-    readConfig();
-
     if(!this->listen(addr, port))
     {
         qDebug() << "Не удалось запустить сервер";
@@ -18,7 +16,6 @@ bool FCManager::startServer()
     {
         qDebug() << "Прослушивается порт " << port << "...";
     }
-
     return true;
 }
 
