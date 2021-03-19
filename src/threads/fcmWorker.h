@@ -5,7 +5,6 @@
 #include <QTcpSocket>
 #include <QDebug>
 #include <type_traits>
-#include "fcmanager.h"
 #include "agents/agentsinfo.h"
 #include "common/querybuilder.h"
 #include "common/messagebuilder.h"
@@ -19,9 +18,9 @@ class FcmWorker : public QObject
 public:
     FcmWorker(qintptr ID, QObject *parent = 0);
     void doSomeWork();
+    static std::optional<FCM::AgentVariant> performHandshake(Utils::QueryBuilder &);
 
 private:
-    std::optional<FCM::AgentVariant> performHandshake();
     Utils::QueryBuilder query;
 
 signals:

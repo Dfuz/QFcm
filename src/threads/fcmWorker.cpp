@@ -1,4 +1,5 @@
 #include "fcmWorker.h"
+#include "fcmanager.h"
 
 FcmWorker::FcmWorker(qintptr ID, QObject *parent) : QObject(parent)
 {
@@ -15,15 +16,15 @@ void FcmWorker::doSomeWork()
     qDebug() << query.socket->socketDescriptor() << " Client connected";
 }
 
-std::optional<FCM::AgentVariant> FcmWorker::performHandshake()
+std::optional<FCM::AgentVariant> FcmWorker::performHandshake(Utils::QueryBuilder &_query)
 {
     auto message = Utils::ServiceMessage
     {{
 //            std::pair("type", "handshake"),
-            std::pair("compression", FCManager::getCompression())
+            std::pair("compression", FCManager::getCompression()),
     }};
 
-    auto response = query.makeQuery()
+    auto response = _query.makeQuery()
             .toSend(message)
             .toGet<Utils::Service>()
             .setVerificator([](const auto& arg){
@@ -35,17 +36,9 @@ std::optional<FCM::AgentVariant> FcmWorker::performHandshake()
     if (response)
     {
         if (response.value().payload["who"] == "agent")
-        {
-            FCM::Agent agent;
-            emit agentConnected(agent);
-            return agent;
-        }
+            return FCM::Agent{};
         else if (response.value().payload["who"] == "agent_proxy")
-        {
-            FCM::Proxy agent_proxy;
-            emit agentConnected(agent_proxy);
-            return agent_proxy;
-        }
+            return FCM::Proxy{};
     }
 
     return std::nullopt;
@@ -53,9 +46,10 @@ std::optional<FCM::AgentVariant> FcmWorker::performHandshake()
 
 void FcmWorker::readyRead()
 {
-    auto agent = performHandshake();
+    auto agent = performHandshake(query);
     if (agent)
     {
+        emit agentConnected(*agent);
         // AHTUNG!
         std::visit([&](auto&& arg)
         {
@@ -77,5 +71,3 @@ void FcmWorker::disconnected()
     qDebug() << query.socket->socketDescriptor() << " Disconnected";
     emit finished();
 }
-
-
