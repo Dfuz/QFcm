@@ -244,7 +244,7 @@ private slots:
         QVERIFY2(sender->waitForConnected(-1), sender->errorString().toStdString().c_str());
         qDebug() << "sender: got connection";
         auto builder = Utils::QueryBuilder{sender};
-  
+
         // Проверка рукопожатия
         auto message = Utils::ServiceMessage{R"({"who":"agent"})"};
         auto testMsg = builder.makeQueryRead()
