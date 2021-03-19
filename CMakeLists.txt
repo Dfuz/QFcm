@@ -20,6 +20,7 @@ set(TOP_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 include(errors.cmake)
 include(sanitizers.cmake)
+include(coverage.cmake)
 
 list(APPEND QT_MODULES
     Qt${QT_VERSION_MAJOR}::Core
