@@ -52,6 +52,7 @@ void FCManager::incomingConnection(qintptr socketDescriptor)
     }, Qt::QueuedConnection);
 
     connect(threadWorker, &FcmWorker::agentConnected, this, &FCManager::agentConnectedRetranslate);
+
     threadWorker->moveToThread(thread);
     threadWorker->assingSocket(socketDescriptor);
 
