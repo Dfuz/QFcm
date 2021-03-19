@@ -59,6 +59,8 @@ struct Message
             return std::nullopt;
 
         msgObject.take("type");
+
+        qDebug() << "before return "<<msgObject;
         return Message{msgObject.toVariantMap()};
     }
 };

@@ -17,15 +17,15 @@ class FcmWorker : public QObject
     Q_OBJECT
 
 public:
-    FcmWorker(qintptr ID, QObject *parent = 0);
+    FcmWorker(QObject *parent = 0);
     void doSomeWork();
-    static std::optional<FCM::AgentVariant> performHandshake(Utils::QueryBuilder &);
+    static std::optional<FCM::AgentVariant> performHandshake(std::shared_ptr<Utils::QueryBuilder>);
+    void assingSocket(quintptr);
+    std::shared_ptr<QTcpSocket> getSocket();
     friend class fcmanager_tests;
 
 private:
-    Utils::QueryBuilder query;
-    QHostAddress peerAddress;
-    quint16 peerPort;
+    std::shared_ptr<Utils::QueryBuilder> query;
 
 signals:
     void resultReady(const QString& result);

@@ -7,7 +7,6 @@
 #include <algorithm>
 #include <memory>
 #include <optional>
-#include <qdebug.h>
 #include <type_traits>
 #include <variant>
 #include <functional>
@@ -89,10 +88,10 @@ struct Query {
 
         auto got = readMessage();
 
+        writeMessage();
+
         if (!got.has_value())
             return std::nullopt;
-
-        writeMessage();
 
         return got;
     }
@@ -202,6 +201,7 @@ private:
 
     bool checkVerificators(const Message<ret> &msg)
     {
+        if (verificators.empty()) return true;
         return std::all_of(verificators.cbegin(), verificators.cend(),
                         [&](auto fn) { return fn(msg);});
     }
@@ -209,17 +209,15 @@ private:
 
 struct QueryBuilder {
 public:
-    QueryBuilder(): socket() {}
+    QueryBuilder() {}
     QueryBuilder(std::shared_ptr<QTcpSocket> skt): socket(skt) {}
-    QueryBuilder(QTcpSocket *skt): socket(skt) {}
+    QueryBuilder(QTcpSocket *skt): socket(std::move(skt)) {}
     QueryBuilder(qintptr ptrskt)
     {
-        QTcpSocket* skt = new QTcpSocket();
-        if (!skt->setSocketDescriptor(ptrskt))
+        if (!socket->setSocketDescriptor(ptrskt))
         {
             throw std::runtime_error("setDescriptor failed");
         }
-        socket = std::make_shared<QTcpSocket>(skt);
     }
 
     bool setSocketDescriptor(qintptr ptrskt) {
@@ -267,7 +265,7 @@ public:
                 .toGet<ret>();
     }
 
-    std::shared_ptr<QTcpSocket> socket;
+    std::shared_ptr<QTcpSocket> socket = std::make_shared<QTcpSocket>();
 };
 
 }
