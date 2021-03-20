@@ -4,11 +4,6 @@
 FcmWorker::FcmWorker(quintptr id, QObject *parent) : QObject(parent), _id(id)
 {}
 
-void FcmWorker::assingSocket(quintptr id)
-{
-    query = std::make_shared<Utils::QueryBuilder>(id);
-}
-
 void FcmWorker::doSomeWork()
 {
     qDebug() << "[Worker Thread]" << "[ID:" << QThread::currentThreadId() << "]" << "Поток запущен...";

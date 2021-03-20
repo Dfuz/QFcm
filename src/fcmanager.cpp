@@ -54,7 +54,6 @@ void FCManager::incomingConnection(qintptr socketDescriptor)
     connect(threadWorker, &FcmWorker::agentConnected, this, &FCManager::agentConnectedRetranslate);
 
     threadWorker->moveToThread(thread);
-    //threadWorker->assingSocket(socketDescriptor);
 
     thread->start();
     qDebug() << "[Main Thread  ]" << "[ID:" << QThread::currentThreadId() << "]" << "Поток запущен...";

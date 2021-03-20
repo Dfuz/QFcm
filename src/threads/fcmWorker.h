@@ -20,7 +20,6 @@ public:
     FcmWorker(quintptr id, QObject *parent = 0);
     void doSomeWork();
     static std::optional<FCM::AgentVariant> performHandshake(std::shared_ptr<Utils::QueryBuilder>);
-    void assingSocket(quintptr);
     std::shared_ptr<QTcpSocket> getSocket();
     friend class fcmanager_tests;
 
