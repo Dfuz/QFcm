@@ -74,4 +74,6 @@ using AgentVariant = std::variant<Agent, Proxy>;
 
 }
 
+Q_DECLARE_METATYPE(FCM::AgentVariant);
+
 #endif // AGENTSINFO_H
