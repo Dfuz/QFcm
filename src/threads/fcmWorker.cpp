@@ -1,10 +1,8 @@
 #include "fcmWorker.h"
 #include "fcmanager.h"
 
-FcmWorker::FcmWorker(QObject *parent) : QObject(parent)
-{
-
-}
+FcmWorker::FcmWorker(quintptr id, QObject *parent) : QObject(parent), _id(id)
+{}
 
 void FcmWorker::assingSocket(quintptr id)
 {
@@ -14,6 +12,8 @@ void FcmWorker::assingSocket(quintptr id)
 void FcmWorker::doSomeWork()
 {
     qDebug() << "[Worker Thread]" << "[ID:" << QThread::currentThreadId() << "]" << "Поток запущен...";
+
+    query = std::make_shared<Utils::QueryBuilder>(_id);
 
     connect(query->socket.get(), &QTcpSocket::readyRead, this, &FcmWorker::readyRead, Qt::DirectConnection);
     connect(query->socket.get(), &QTcpSocket::disconnected, this, &FcmWorker::disconnected);

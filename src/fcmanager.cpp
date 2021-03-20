@@ -32,7 +32,7 @@ void FCManager::incomingConnection(qintptr socketDescriptor)
     qDebug() << "[Main Thread  ]" << "[ID:" << QThread::currentThreadId() << "]"
              << socketDescriptor << " Подключение...";
 
-    FcmWorker* threadWorker = new FcmWorker();
+    FcmWorker* threadWorker = new FcmWorker(socketDescriptor);
 
     qDebug() << "[Main Thread  ]" << "[ID:" << QThread::currentThreadId() << "]"
              << "Запускается новый поток для обрабоки клиента...";
@@ -54,7 +54,7 @@ void FCManager::incomingConnection(qintptr socketDescriptor)
     connect(threadWorker, &FcmWorker::agentConnected, this, &FCManager::agentConnectedRetranslate);
 
     threadWorker->moveToThread(thread);
-    threadWorker->assingSocket(socketDescriptor);
+    //threadWorker->assingSocket(socketDescriptor);
 
     thread->start();
     qDebug() << "[Main Thread  ]" << "[ID:" << QThread::currentThreadId() << "]" << "Поток запущен...";

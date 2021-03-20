@@ -17,7 +17,7 @@ class FcmWorker : public QObject
     Q_OBJECT
 
 public:
-    FcmWorker(QObject *parent = 0);
+    FcmWorker(quintptr id, QObject *parent = 0);
     void doSomeWork();
     static std::optional<FCM::AgentVariant> performHandshake(std::shared_ptr<Utils::QueryBuilder>);
     void assingSocket(quintptr);
@@ -26,6 +26,7 @@ public:
 
 private:
     std::shared_ptr<Utils::QueryBuilder> query;
+    quintptr _id;
 
 signals:
     void resultReady(const QString& result);
