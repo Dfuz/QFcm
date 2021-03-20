@@ -38,4 +38,4 @@ jobs:
     - name: Test
       working-directory: ${{github.workspace}}/build/test
       shell: bash
-      run: ctest -V
+      run: ctest -V --timeout 10
