@@ -43,11 +43,11 @@ void FCManager::incomingConnection(qintptr socketDescriptor)
     connect(threadWorker, &FcmWorker::finished, thread, &QThread::quit);
     connect(threadWorker, &FcmWorker::finished, threadWorker, &FcmWorker::deleteLater);
 
-    connect(threadWorker, &FcmWorker::agentConnected, this, [=](const auto& agent){
+    connect(threadWorker, &FcmWorker::agentConnected, this, [&](const auto& agent){
         agents[threadWorker] = agent;
     }, Qt::QueuedConnection);
 
-    connect(threadWorker, &FcmWorker::finished, this, [=](){
+    connect(threadWorker, &FcmWorker::finished, this, [&](){
         agents.erase(threadWorker);
     }, Qt::QueuedConnection);
 
