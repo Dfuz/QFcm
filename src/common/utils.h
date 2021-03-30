@@ -5,6 +5,7 @@
 #include <QIODevice>
 #include <QJsonObject>
 #include <QJsonDocument>
+#include <QRegularExpression>
 #include <QDebug>
 
 namespace Utils {
