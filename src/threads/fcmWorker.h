@@ -6,9 +6,11 @@
 #include <QHostAddress>
 #include <QDebug>
 #include <type_traits>
+
 #include "agents/agentsinfo.h"
 #include "common/querybuilder.h"
 #include "common/messagebuilder.h"
+#include "common/message_spec/messagetypes.h"
 
 class FCManager;
 

@@ -1,7 +1,7 @@
 #ifndef AGENTDATA_H
 #define AGENTDATA_H
 
-namespace Common {
+namespace FCM {
 
 struct dataFromAgent{};
 

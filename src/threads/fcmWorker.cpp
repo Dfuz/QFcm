@@ -35,26 +35,22 @@ void FcmWorker::doSomeWork()
 
 std::optional<FCM::AgentVariant> FcmWorker::performHandshake(std::shared_ptr<Utils::QueryBuilder> _query)
 {
-    auto message = Utils::ServiceMessage
-    {{
-//            std::pair("type", "handshake"),
-            std::pair("compression", FCManager::getCompression()),
-    }};
+    QMap<QString, QVariant> payload = 
+    {
+        {"who", "server"},
+        {"compression", FCManager::getCompression()}
+    };
 
     auto response = _query->makeQuery()
-            .toSend(message)
-            .toGet<Utils::Service>()
-            .setVerificator([](const auto &msg) {
-                Q_UNUSED(msg);
-                return true;
-            })
+            .toSend(Utils::HandshakeMessage{payload})
+            .toGet<Utils::Handshake>()
             .invoke();
 
     if (response)
     {
-        if (response.value().payload["who"] == "agent")
+        if (response->who == "agent")
             return FCM::Agent{};
-        else if (response.value().payload["who"] == "agent_proxy")
+        else if (response->who == "agent_proxy")
             return FCM::Proxy{};
     }
 

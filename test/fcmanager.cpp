@@ -3,6 +3,8 @@
 #include <QFile>
 #include <QtConcurrent/QtConcurrent>
 
+#include "common/message_spec/messagesendable.h"
+#include "common/message_spec/messagetypes.h"
 #include "common/messagebuilder.h"
 #include "common/utils.h"
 #include "fcmanager.h"
@@ -62,16 +64,16 @@ private slots:
             std::pair{"test3", "testmsg"}
         };
         auto msg = Utils::TestMessage{payload};
-        auto exp = QByteArray{R"({"test1":"testmsg","test2":"testmsg","test3":"testmsg","type":2})"};
+        auto exp = QByteArray{R"({"test1":"testmsg","test2":"testmsg","test3":"testmsg","type":3})"};
         QCOMPARE(msg.toJson(), exp);
 
         QMap<QString, QVariant> payload2 {
-            std::pair{"type", 1},
-            std::pair{"test2", "testmsg"},
-            std::pair{"test3", "testmsg"}
+            {"type", 1},
+            {"test2", "testmsg"},
+            {"test3", "testmsg"}
         };
         auto msg2 = Utils::ServiceMessage{payload2};
-        auto exp2 = QByteArray{R"({"test2":"testmsg","test3":"testmsg","type":0})"};
+        auto exp2 = QByteArray{R"({"test2":"testmsg","test3":"testmsg","type":1})"};
         QCOMPARE(msg2.toJson(), exp2);
 
         auto msg3 = Utils::ServiceMessage{R"(
@@ -80,7 +82,7 @@ private slots:
                 "field2": 2
             }
         )"};
-        auto exp3 = QByteArray{R"({"field1":1,"field2":2,"type":0})"};
+        auto exp3 = QByteArray{R"({"field1":1,"field2":2,"type":1})"};
         QCOMPARE(msg3.toJson(), exp3);
     }
 
@@ -125,10 +127,6 @@ private slots:
             builder.onlySend(msg).invoke();
             QThread::msleep(10);
 
-            //test3
-            builder.onlySend(msg).invoke();
-            QThread::msleep(10);
-
             server->close();
             return true;
         });
@@ -151,27 +149,8 @@ private slots:
 
         auto query1 = builder.onlyGet<Utils::Test>();
 
-        auto verificator = [&](const Utils::Message<Utils::Test> &msg) -> bool
-        {
-            auto res = std::equal(msg.payload.cbegin(), msg.payload.cend(), payload.cbegin());
-            qDebug() << "verificator: res "<<res;
-            return res;
-        };
-
-        auto verificator_fail = [&](const Utils::Message<Utils::Test> &msg) -> bool
-        {
-            qDebug() << "verificator: verificator_failing...";
-            Q_UNUSED(msg);
-            return false;
-        };
-
-        query1.setVerificator(verificator);
         auto test2 = query1.invoke();
         QVERIFY(test2.has_value());
-
-        query1.setVerificator(verificator_fail);
-        auto test3 = query1.invoke();
-        QVERIFY(!test3.has_value());
 
         sender->close();
         QVERIFY(thread.result());
@@ -253,12 +232,14 @@ private slots:
         auto builder = Utils::QueryBuilder{sender};
 
         // Проверка рукопожатия
-        auto message = Utils::ServiceMessage{R"({"who":"agent"})"};
+        auto message = Utils::HandshakeMessage{R"({"who":"agent", "hostname":"localhost"})"};
         auto testMsg = builder.makeQueryRead()
-               .toGet<Utils::Service>()
+               .toGet<Utils::Handshake>()
                .toSend(message)
                .invoke();
         QVERIFY(testMsg.has_value());
+        QCOMPARE(testMsg->who, "server");
+        QVERIFY(testMsg->hostname.isNull());
         thread->quit();
     }
 };

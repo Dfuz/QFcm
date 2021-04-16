@@ -32,12 +32,18 @@ list(APPEND SOURCES
 
 list(APPEND HEADERS
     ${TOP_DIR}/src/fcmanager.h
-    ${TOP_DIR}/src/common/agentdata.h
+    ${TOP_DIR}/src/agents/agentsinfo.h
+    ${TOP_DIR}/src/agents/agentdata.h
+    ${TOP_DIR}/src/threads/fcmWorker.h
     ${TOP_DIR}/src/common/utils.h
     ${TOP_DIR}/src/common/querybuilder.h
     ${TOP_DIR}/src/common/messagebuilder.h
-    ${TOP_DIR}/src/agents/agentsinfo.h
-    ${TOP_DIR}/src/threads/fcmWorker.h)
+    ${TOP_DIR}/src/common/message_spec/messagetypes.h
+    ${TOP_DIR}/src/common/message_spec/messagesendable.h
+    ${TOP_DIR}/src/common/message_spec/messagereadable.h
+    ${TOP_DIR}/src/common/message_spec/messagereadable_handshake.h
+    ${TOP_DIR}/src/common/message_spec/messagereadable_nomessage.h
+    ${TOP_DIR}/src/common/message_spec/messagereadable_data.h)
 
 add_subdirectory(src)
 add_subdirectory(test)

@@ -15,9 +15,10 @@
 #include <chrono>
 #include <map>
 #include <QMap>
+
 #include "threads/fcmWorker.h"
-#include "common/agentdata.h"
 #include "agents/agentsinfo.h"
+#include "agents/agentdata.h"
 
 using namespace std::chrono;
 class FcmWorker;
@@ -55,7 +56,7 @@ private:
     QMutex agentsMutex;
 
 signals:
-    void gotData(const QPair<qint32, Common::dataFromAgent> &);
+    void gotData(const QPair<qint32, FCM::dataFromAgent> &);
     void agentConnectedRetranslate(FCM::AgentVariant);
 
 private slots:
