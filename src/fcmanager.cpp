@@ -93,7 +93,7 @@ void FCManager::readConfig(QString settings_path)
                                               QCryptographicHash::Md4).toBase64();
     else hostName = settings.value("HostName").toString();
 
-    /*if (settings.value("polling_rate").isNull())
+    if (settings.value("polling_rate").isNull())
         settings.setValue("polling_rate", "1m");
-    timeOut = Utils::parseTime(settings.value("polling_rate").toString());*/
+    timeOut = Utils::parseTime(settings.value("polling_rate").toString());
 }

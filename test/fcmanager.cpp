@@ -239,7 +239,7 @@ private slots:
                .invoke();
         QVERIFY(testMsg.has_value());
         QCOMPARE(testMsg->who, "server");
-        QVERIFY(testMsg->hostname.isNull());
+        QVERIFY(!testMsg->hostname.isNull());
         thread->quit();
     }
 };
