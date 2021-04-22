@@ -6,6 +6,7 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QRegularExpression>
+#include <QtNetwork>
 #include <QDebug>
 
 namespace Utils {
@@ -47,16 +48,37 @@ inline std::chrono::milliseconds parseTime(const QString& input)
     std::chrono::milliseconds time{0};
 
     QRegularExpression ms{"[0-9]+ms"},
-                       s{"[0-9]+s"},
-                       min{"[0-9]+m"},
-                       hour{"[0-9]+h"};
+    s{"[0-9]+s"},
+    min{"[0-9]+m"},
+    hour{"[0-9]+h"};
 
-    time += std::chrono::hours{hour.match(input).captured().left(1).toInt()};
-    time += std::chrono::minutes{min.match(input).captured().left(1).toInt()};
-    time += std::chrono::seconds{s.match(input).captured().left(1).toInt()};
-    time += std::chrono::milliseconds{ms.match(input).captured().left(2).toInt()};
+    auto const msMatch   = ms.match(input).captured(),
+            sMatch    =  s.match(input).captured(),
+            minMatch  = min.match(input).captured(),
+            hourMatch = hour.match(input).captured();
+
+    auto const pos_ms    = msMatch.lastIndexOf("ms"),
+            pos_s     = sMatch.lastIndexOf('s'),
+            pos_min   = minMatch.lastIndexOf('m'),
+            pos_hour  = hourMatch.lastIndexOf('h');
+
+    time += std::chrono::hours{hourMatch.left(pos_hour).toInt()};
+    time += std::chrono::minutes{minMatch.left(pos_min).toInt()};
+    time += std::chrono::seconds{sMatch.left(pos_s).toInt()};
+    time += std::chrono::milliseconds{msMatch.left(pos_ms).toInt()};
     return time;
 }
+
+inline QString getMacAddress()
+{
+    foreach(QNetworkInterface netInterface, QNetworkInterface::allInterfaces())
+    {
+        if (!(netInterface.flags() & QNetworkInterface::IsLoopBack))
+            return netInterface.hardwareAddress();
+    }
+    return QString();
+}
+
 
 }
 

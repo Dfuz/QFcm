@@ -11,6 +11,7 @@
 #include "common/querybuilder.h"
 #include "common/messagebuilder.h"
 #include "common/message_spec/messagetypes.h"
+#include "common/message_spec/messagesendable.h"
 
 class FCManager;
 
@@ -23,6 +24,7 @@ public:
     void doSomeWork();
     static std::optional<FCM::AgentVariant> performHandshake(std::shared_ptr<Utils::QueryBuilder>);
     std::shared_ptr<QTcpSocket> getSocket();
+    std::shared_ptr<QString> hostName;
     friend class fcmanager_tests;
 
 private:

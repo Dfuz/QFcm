@@ -19,6 +19,10 @@
 #include "threads/fcmWorker.h"
 #include "agents/agentsinfo.h"
 #include "agents/agentdata.h"
+#include "common/message_spec/messagesendable.h"
+#include "common/message_spec/messagetypes.h"
+#include "common/messagebuilder.h"
+#include "common/utils.h"
 
 using namespace std::chrono;
 class FcmWorker;
@@ -36,6 +40,7 @@ public:
     void readConfig(QString settings_path = "conf.json");
     bool startServer();
     static int getCompression(void);
+    static QString getHostName(void);
     friend class fcmanager_tests;
 
 protected:
@@ -47,6 +52,7 @@ private:
     int currNumberOfAgents{0};
     int maxNumberOfAgents{0};
     inline static int compression;
+    inline static QString hostName;
     int port{0};
 
     //qint32 is QHostAddress::toIPv4Address()

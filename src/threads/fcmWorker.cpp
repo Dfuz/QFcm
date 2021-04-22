@@ -24,6 +24,8 @@ void FcmWorker::doSomeWork()
             if constexpr (std::is_same_v<T, FCM::Agent>)
             {
                 auto response = query->onlyGet<Utils::Data>().invoke();
+                qDebug() << "Readed some shit: " << *response->jsonArrayData;
+
                 // TODO: parse data
             }
         }, *agent);
@@ -38,6 +40,7 @@ std::optional<FCM::AgentVariant> FcmWorker::performHandshake(std::shared_ptr<Uti
     QMap<QString, QVariant> payload = 
     {
         {"who", "server"},
+        {"hostname", FCManager::getHostName()},
         {"compression", FCManager::getCompression()}
     };
 

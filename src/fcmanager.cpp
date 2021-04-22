@@ -27,6 +27,11 @@ int FCManager::getCompression()
     return compression;
 }
 
+QString FCManager::getHostName()
+{
+    return hostName;
+}
+
 void FCManager::incomingConnection(qintptr socketDescriptor)
 {
     qDebug() << "[Main Thread  ]" << "[ID:" << QThread::currentThreadId() << "]"
@@ -43,13 +48,13 @@ void FCManager::incomingConnection(qintptr socketDescriptor)
     connect(threadWorker, &FcmWorker::finished, thread, &QThread::quit);
     connect(threadWorker, &FcmWorker::finished, threadWorker, &FcmWorker::deleteLater);
 
-    connect(threadWorker, &FcmWorker::agentConnected, this, [&](const auto& agent){
+    /*connect(threadWorker, &FcmWorker::agentConnected, this, [&](const auto& agent){
         agents[threadWorker] = agent;
     }, Qt::QueuedConnection);
 
     connect(threadWorker, &FcmWorker::finished, this, [&](){
         agents.erase(threadWorker);
-    }, Qt::QueuedConnection);
+    }, Qt::QueuedConnection);*/
 
     connect(threadWorker, &FcmWorker::agentConnected, this, &FCManager::agentConnectedRetranslate);
 
@@ -82,7 +87,13 @@ void FCManager::readConfig(QString settings_path)
         settings.setValue("compression", 0);
     compression = settings.value("compression").toInt();
 
-    if (settings.value("polling_rate").isNull())
+    // если имя хоста не задано, то в качестве имени будет взят хэш от мак-адреса
+    if (settings.value("HostName").isNull())
+        hostName =  QCryptographicHash::hash(Utils::getMacAddress().toUtf8(),
+                                              QCryptographicHash::Md4).toBase64();
+    else hostName = settings.value("HostName").toString();
+
+    /*if (settings.value("polling_rate").isNull())
         settings.setValue("polling_rate", "1m");
-    timeOut = Utils::parseTime(settings.value("polling_rate").toString());
+    timeOut = Utils::parseTime(settings.value("polling_rate").toString());*/
 }
