@@ -29,25 +29,30 @@ void FcmWorker::processClient()
                 auto startTime = std::chrono::high_resolution_clock::now();
 
                 auto response = query->onlyGet<Utils::Data>().invoke();
-                qDebug() << "Readed message: "  << *response->jsonArrayData;
-                agentDataArray = std::make_shared<std::vector<FCM::dataFromAgent>>();
+                if (!response) {
+                    qDebug() << "Got no data";
+                    query->socket->disconnect();
+                    return;
+                }
+                qDebug() << "Readed message: "  << response->jsonArrayData;
                 int processedCount = 0, failedCount = 0;
 
-                foreach (const auto& value, *response->jsonArrayData)
+                for (const auto& value: response->jsonArrayData)
                 {
                     if (value.isObject())
                     {
-                        FCM::dataFromAgent data;
                         auto const obj = value.toObject();
-                        data.hostName   = obj.value("hostname").toString("error");
-                        data.keyData    = obj.value("key").toString("error");
-                        data.virtualId  = obj.value("id").toInt(0);
-                        data.clock      = obj.value("clock").toInt(-1);
-                        data.value      = obj.value("value").toString("error");
+                        FCM::dataFromAgent data {
+                            .hostName = obj.value("hostname").toString("error"),
+                            .keyData = obj.value("key").toString("error"),
+                            .value = obj.value("value").toString("error"),
+                            .virtualId = static_cast<quint16>(obj.value("id").toInt(0)),
+                            .clock = obj.value("clock").toInt(-1),
+                        };
 
                         if (data.checkData())
                         {
-                            agentDataArray->push_back(data);
+                            agentDataArray.push_back(data);
                             ++processedCount;
                         } else ++failedCount;
                     }

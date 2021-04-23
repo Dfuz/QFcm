@@ -25,8 +25,8 @@ public:
     void processClient();
     static std::optional<FCM::AgentVariant> performHandshake(std::shared_ptr<Utils::QueryBuilder>);
     std::shared_ptr<QTcpSocket> getSocket();
-    std::shared_ptr<QString> hostName;
-    std::shared_ptr<std::vector<FCM::dataFromAgent>> agentDataArray;
+    QString hostName;
+    std::vector<FCM::dataFromAgent> agentDataArray;
     friend class fcmanager_tests;
 
 private:

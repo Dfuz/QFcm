@@ -46,9 +46,10 @@ using NoMsgMessage = SendableMessage<NoMessage>;
 template<Utils::MessageType type>
 QDebug operator<<(QDebug dbg, const Utils::SendableMessage<type>& message)
 {
+    QDebugStateSaver saver(dbg);
     dbg.nospace() << "Type: " << type;
     dbg.nospace() << "Payload: " << message.payload;
-    return dbg.maybeSpace();
+    return dbg;
 }
 
 #endif //MESSAGESENDABLE_H
