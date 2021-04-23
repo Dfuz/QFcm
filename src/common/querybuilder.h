@@ -167,13 +167,13 @@ private:
         if constexpr (ret == NoMessage)
             return ReadableMessage<NoMessage>{};
 
-        qDebug()<<"Query: waiting to read";
+        qDebug() << "Query: waiting to read";
 
-        if (!socket->waitForReadyRead())
+        if (!socket->waitForReadyRead(10'000))
             return std::nullopt;
 
         auto gotSize = socket->read(sizeof(quint16) + QFCM_HEADER.size());
-        qDebug()<<"Query: readed header "<<gotSize;
+        qDebug() << "Query: readed header " << gotSize;
         if (!gotSize.startsWith(QFCM_HEADER))
             return std::nullopt;
 
@@ -184,7 +184,7 @@ private:
         auto got = ReadableMessage<ret>::parseJson(qUncompress(gotRaw));
 
         if(!got.has_value()) {
-            qDebug()<<"Query: failed to parse: "<<gotRaw.data();
+            qDebug() << "Query: failed to parse: " << gotRaw.data();
             return std::nullopt;
         }
 
