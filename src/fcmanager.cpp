@@ -6,6 +6,12 @@ FCManager::FCManager(QObject *parent) :
     QTcpServer(parent)
 {
     qRegisterMetaType<FCM::AgentVariant>();
+    db = QSqlDatabase::addDatabase("QSQLITE");
+    db.setDatabaseName("QFcm.sqlite");
+    if (!QFile::exists("QFcm.sqlite"))
+        qDebug()<<"Не удалось найти базу данных, создаем новую...";
+    if (!db.open())
+        qDebug()<<"Не удалось открыть базу данных";
 }
 
 bool FCManager::startServer()
@@ -13,13 +19,13 @@ bool FCManager::startServer()
     if(!this->listen(addr, port))
     {
         qDebug() << "Не удалось запустить сервер";
-        qDebug() << "Адрес: " << addr << " порт: " << port << "...";
+        qDebug() << "Адрес: " << addr.toString() << " порт: " << port << "...";
         qDebug() << "Ошибка: " << this->errorString();
     }
     else
     {
         qDebug() << "Сервер запустился";
-        qDebug() << "Адрес: " << addr << " порт: " << port << "...";
+        qDebug() << "Адрес: " << addr.toString() << " порт: " << port << "...";
     }
     return true;
 }

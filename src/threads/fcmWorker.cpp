@@ -72,7 +72,7 @@ void FcmWorker::processClient()
 
 std::optional<FCM::AgentVariant> FcmWorker::performHandshake(std::shared_ptr<Utils::QueryBuilder> _query)
 {
-    QMap<QString, QVariant> payload = 
+    QMap<QString, QVariant> payload
     {
         {"who", "server"},
         {"hostname", FCManager::getHostName()},
@@ -80,7 +80,7 @@ std::optional<FCM::AgentVariant> FcmWorker::performHandshake(std::shared_ptr<Uti
     };
 
     auto response = _query->makeQuery()
-            .toSend(Utils::HandshakeMessage{payload}, FCManager::getCompression())
+            .toSend(Utils::HandshakeMessage{payload}, FCManager::getCompression())  //FIXME: как ты передашь информацию о компрессии уже заюзав компрессию
             .toGet<Utils::Handshake>()
             .invoke();
 

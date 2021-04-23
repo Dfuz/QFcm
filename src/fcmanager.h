@@ -2,6 +2,7 @@
 #define FCMANAGER_H
 
 #include <QCoreApplication>
+#include <QtSql/QSqlDatabase>
 #include <QTcpServer>
 #include <QSettings>
 #include <QJsonDocument>
@@ -54,6 +55,7 @@ private:
     inline static int compression;
     inline static QString hostName;
     int port{0};
+    QSqlDatabase db;
 
     //qint32 is QHostAddress::toIPv4Address()
     std::map<FcmWorker*, FCM::AgentVariant> agents;
