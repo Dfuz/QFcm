@@ -4,7 +4,9 @@
 
 FCManager::FCManager(QObject *parent) :
     QTcpServer(parent)
-{}
+{
+    qRegisterMetaType<FCM::AgentVariant>();
+}
 
 bool FCManager::startServer()
 {
