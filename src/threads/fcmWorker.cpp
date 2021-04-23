@@ -4,7 +4,7 @@
 FcmWorker::FcmWorker(quintptr id, QObject *parent) : QObject(parent), _id(id)
 {}
 
-void FcmWorker::doSomeWork()
+void FcmWorker::processClient()
 {
     qDebug() << "[Worker Thread]" << "[ID:" << QThread::currentThreadId() << "]" << "Поток запущен...";
 
