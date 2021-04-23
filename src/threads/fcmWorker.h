@@ -8,6 +8,7 @@
 #include <type_traits>
 
 #include "agents/agentsinfo.h"
+#include "agents/agentdata.h"
 #include "common/querybuilder.h"
 #include "common/messagebuilder.h"
 #include "common/message_spec/messagetypes.h"
@@ -25,6 +26,7 @@ public:
     static std::optional<FCM::AgentVariant> performHandshake(std::shared_ptr<Utils::QueryBuilder>);
     std::shared_ptr<QTcpSocket> getSocket();
     std::shared_ptr<QString> hostName;
+    std::shared_ptr<std::vector<FCM::dataFromAgent>> agentDataArray;
     friend class fcmanager_tests;
 
 private:

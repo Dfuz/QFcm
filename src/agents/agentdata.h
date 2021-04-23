@@ -13,6 +13,15 @@ struct dataFromAgent
     QVariant value;
     quint16 virtualId;  // используется, чтобы отбрасывать дубликаты значений, которые могут быть отправлены в средах с плохой связью
     std::time_t clock;
+
+    bool checkData() const
+    {
+        if (hostName == "error" or keyData == "error" or value.toString() == "error")
+            return false;
+        if (virtualId == 0 or clock == -1)
+            return false;
+        return true;
+    }
 };
 
 }
