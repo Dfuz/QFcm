@@ -60,3 +60,7 @@ compile_commands.json
 # CMake
 build*
 .cache/
+
+# KDevelop
+.kdev4/
+*.kdev4
