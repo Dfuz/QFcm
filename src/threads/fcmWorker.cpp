@@ -53,7 +53,7 @@ void FcmWorker::doSomeWork()
                     }
                 }
                 auto endTime = std::chrono::high_resolution_clock::now();
-                auto durationTime = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count();
+                auto durationTime = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
                 QString info = QString("processed: %1; failed: %2; total: %3; seconds spent: %4")
                                .arg(processedCount).arg(failedCount).arg(failedCount + processedCount).arg(durationTime);
                 QString responseStatus = (failedCount > 0 or processedCount == 0) ? QString("failed") : QString("success");

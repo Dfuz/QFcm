@@ -1,0 +1,7 @@
+{
+    "address": "127.0.0.1",
+    "compression": 0,
+    "max_agents": 4,
+    "polling_rate": "1m",
+    "port": 1234
+}
