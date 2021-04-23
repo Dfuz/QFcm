@@ -146,17 +146,18 @@ private:
     bool writeMessage()
     {
         // Участок отправки сообщения
-        if constexpr (to != NoMessage) {
+        if constexpr (to != NoMessage)
+        {
             auto toSend = qCompress(msg.toJson(), compressionLevel);
             quint16 size = toSend.size();
             socket->write(QFCM_HEADER);
             socket->write(reinterpret_cast<const char*>(&size), sizeof(quint16));
             socket->write(toSend);
             if (!socket->waitForBytesWritten()) {
-                qDebug()<<"Query: failed to write";
+                qDebug() << "Query: failed to write";
                 return false;
             }
-            qDebug()<<"Query: sended "<<toSend<<"\nbytes "<<toSend.size();
+            qDebug() << "Query: sended " << toSend << "\nbytes " << toSend.size();
         }
         return true;
     }
@@ -178,12 +179,13 @@ private:
             return std::nullopt;
 
         auto gotRaw = socket->read(reinterpret_cast<const quint16*>(gotSize.remove(0, QFCM_HEADER.size()).constData())[0]);
-        qDebug()<<"Query: readed raw "<<gotRaw;
+        qDebug() << "Query: readed raw " << gotRaw;
         
 
         auto got = ReadableMessage<ret>::parseJson(qUncompress(gotRaw));
 
-        if(!got.has_value()) {
+        if(!got.has_value())
+        {
             qDebug() << "Query: failed to parse: " << gotRaw.data();
             return std::nullopt;
         }

@@ -58,7 +58,7 @@ void FCManager::incomingConnection(qintptr socketDescriptor)
         agents.erase(threadWorker);
     }, Qt::QueuedConnection);*/
 
-    connect(threadWorker, &FcmWorker::agentConnected, this, &FCManager::agentConnectedRetranslate);
+    //connect(threadWorker, &FcmWorker::agentConnected, this, &FCManager::agentConnectedRetranslate);
 
     threadWorker->moveToThread(thread);
 
