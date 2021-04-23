@@ -45,7 +45,7 @@ void FCManager::incomingConnection(qintptr socketDescriptor)
              << "Запускается новый поток для обрабоки клиента...";
     QThread* thread = new QThread();
 
-    connect(thread, &QThread::started, threadWorker, &FcmWorker::doSomeWork);
+    connect(thread, &QThread::started, threadWorker, &FcmWorker::processClient);
     connect(thread, &QThread::finished, threadWorker, &FcmWorker::deleteLater);
     connect(threadWorker, &FcmWorker::finished, thread, &QThread::quit);
     connect(threadWorker, &FcmWorker::finished, threadWorker, &FcmWorker::deleteLater);
