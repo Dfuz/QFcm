@@ -22,7 +22,7 @@ class FcmWorker : public QObject
 
 public:
     FcmWorker(quintptr id, QObject *parent = 0);
-    void doSomeWork();
+    void processClient();
     static std::optional<FCM::AgentVariant> performHandshake(std::shared_ptr<Utils::QueryBuilder>);
     std::shared_ptr<QTcpSocket> getSocket();
     std::shared_ptr<QString> hostName;
