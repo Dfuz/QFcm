@@ -9,9 +9,9 @@ FCManager::FCManager(QObject *parent) :
     db = QSqlDatabase::addDatabase("QSQLITE");
     db.setDatabaseName("QFcm.sqlite");
     if (!QFile::exists("QFcm.sqlite"))
-        qDebug()<<"Не удалось найти базу данных, создаем новую...";
+        qDebug() << "Не удалось найти базу данных, создаем новую...";
     if (!db.open())
-        qDebug()<<"Не удалось открыть базу данных";
+        qDebug() << "Не удалось открыть базу данных";
 }
 
 bool FCManager::startServer()
@@ -19,13 +19,14 @@ bool FCManager::startServer()
     if(!this->listen(addr, port))
     {
         qDebug() << "Не удалось запустить сервер";
-        qDebug() << "Адрес: " << addr.toString() << " порт: " << port << "...";
-        qDebug() << "Ошибка: " << this->errorString();
+        qDebug() << "Адрес:" << addr.toString() << "порт:" << port << "...";
+        qDebug() << "Ошибка:" << this->errorString();
+        return false;
     }
     else
     {
         qDebug() << "Сервер запустился";
-        qDebug() << "Адрес: " << addr.toString() << " порт: " << port << "...";
+        qDebug() << "Адрес:" << addr.toString() << "порт:" << port << "...";
     }
     return true;
 }

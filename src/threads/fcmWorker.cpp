@@ -10,7 +10,7 @@ void FcmWorker::processClient()
 
     query = std::make_shared<Utils::QueryBuilder>(_id);
 
-    connect(query->socket.get(), &QTcpSocket::readyRead, this, &FcmWorker::readyRead, Qt::DirectConnection);
+    //connect(query->socket.get(), &QTcpSocket::readyRead, this, &FcmWorker::readyRead, Qt::DirectConnection);
     connect(query->socket.get(), &QTcpSocket::disconnected, this, &FcmWorker::disconnected);
     
     auto agent = performHandshake(query);
@@ -29,7 +29,8 @@ void FcmWorker::processClient()
                 auto startTime = std::chrono::high_resolution_clock::now();
 
                 auto response = query->onlyGet<Utils::Data>().invoke();
-                if (!response) {
+                if (!response)
+                {
                     qDebug() << "Got no data";
                     query->socket->disconnect();
                     return;
@@ -42,7 +43,8 @@ void FcmWorker::processClient()
                     if (value.isObject())
                     {
                         auto const obj = value.toObject();
-                        FCM::dataFromAgent data {
+                        FCM::dataFromAgent data
+                        {
                             .hostName = obj.value("hostname").toString("error"),
                             .keyData = obj.value("key").toString("error"),
                             .value = obj.value("value").toString("error"),
@@ -58,8 +60,8 @@ void FcmWorker::processClient()
                     }
                 }
                 auto endTime = std::chrono::high_resolution_clock::now();
-                auto durationTime = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
-                QString info = QString("processed: %1; failed: %2; total: %3; seconds spent: %4")
+                auto durationTime = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count();
+                QString info = QString("processed: %1; failed: %2; total: %3; microseconds spent: %4")
                                .arg(processedCount).arg(failedCount).arg(failedCount + processedCount).arg(durationTime);
                 QString responseStatus = (failedCount > 0 or processedCount == 0) ? QString("failed") : QString("success");
 
@@ -80,7 +82,7 @@ std::optional<FCM::AgentVariant> FcmWorker::performHandshake(std::shared_ptr<Uti
     };
 
     auto response = _query->makeQuery()
-            .toSend(Utils::HandshakeMessage{payload}, FCManager::getCompression())  //FIXME: как ты передашь информацию о компрессии уже заюзав компрессию
+            .toSend(Utils::HandshakeMessage{payload})  //FIXME: как ты передашь информацию о компрессии уже заюзав компрессию
             .toGet<Utils::Handshake>()
             .invoke();
 

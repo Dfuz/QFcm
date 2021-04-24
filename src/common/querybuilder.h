@@ -170,8 +170,12 @@ private:
 
         qDebug() << "Query: waiting to read";
 
-        if (!socket->waitForReadyRead(10'000))
-            return std::nullopt;
+        if (!socket->waitForReadyRead(2'500))
+        {
+            qWarning() << "\n\n\nWarning!!! In wait forRead statement\n\n\n";
+            if (socket->bytesAvailable() == 0)
+                return std::nullopt;
+        }
 
         auto gotSize = socket->read(sizeof(quint16) + QFCM_HEADER.size());
         qDebug() << "Query: readed header " << gotSize;

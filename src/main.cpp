@@ -12,7 +12,8 @@ int main(int argc, char *argv[])
 
     FCManager server(&a);
     server.readConfig();
-    server.startServer();
+    if (!server.startServer())
+        return -1;
 
     return a.exec();
 }
