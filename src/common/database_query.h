@@ -5,17 +5,31 @@
 
 namespace DataBase {
 
+// CREATE TABLE Agents(
+//   MAC    	TEXT NOT NULL UNIQUE PRIMARY KEY, 
+//   HostName	TEXT NOT NULL UNIQUE,
+//   Address	TEXT,
+//   Status	INTEGER DEFAULT 0 CHECK(Status IN(0,1))
+// );
+// CREATE TABLE AgentData(
+//   MAC		TEXT NOT NULL UNIQUE,
+//   JsonData	TEXT,
+//   FOREIGN KEY(MAC) REFERENCES Agents(MAC)
+// );
+
+
 const static char* createDataBase =
       R"(CREATE TABLE IF NOT EXISTS "AgentData" (
             "MAC"        TEXT NOT NULL UNIQUE,
             "JsonData"	TEXT,
-            "PRIMARY KEY("MAC"));
+            ")PRIMARY KEY("MAC");
         "CREATE TABLE IF NOT EXISTS "Agents" (
             "MAC"        TEXT NOT NULL UNIQUE,
             "HostName"	TEXT NOT NULL UNIQUE,
             "Address"	TEXT,
             "Status"	INTEGER DEFAULT 0 CHECK(Status IN(0,1)),
-            "PRIMARY KEY("MAC"));)";
+            "PRIMARY KEY("MAC"));
+            )";
 
 const static char* insertAgent = "INSERT INTO Agents (MAC, HostName, Address, Status) VALUES(:mac, :hostname, :address, :status);";
 
