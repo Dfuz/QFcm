@@ -9,7 +9,9 @@ FCManager::FCManager(QObject *parent) :
     db = QSqlDatabase::addDatabase("QSQLITE");
     db.setDatabaseName("QFcm.sqlite");
     if (!QFile::exists("QFcm.sqlite"))
+    {
         qDebug() << "Не удалось найти базу данных, создаем новую...";
+    }
     if (!db.open())
         qDebug() << "Не удалось открыть базу данных";
 }
