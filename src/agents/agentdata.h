@@ -2,7 +2,9 @@
 #define AGENTDATA_H
 
 #include <QString>
+#include <QJsonValue>
 #include <QVariant>
+#include <QJsonDocument>
 
 namespace FCM {
 
@@ -16,7 +18,7 @@ struct dataFromAgent
 
     bool checkData() const
     {
-        if (hostName == "error" or keyData == "error" or value.toString() == "error")
+        if (hostName == "error" or keyData == "error" or value.isNull())
             return false;
         if (virtualId == 0 or clock == -1)
             return false;

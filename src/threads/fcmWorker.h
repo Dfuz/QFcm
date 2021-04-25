@@ -6,6 +6,7 @@
 #include <QHostAddress>
 #include <QtSql/QSqlDatabase>
 #include <QtSql>
+#include <QDataStream>
 #include <type_traits>
 #include <QDebug>
 #include <Qt>

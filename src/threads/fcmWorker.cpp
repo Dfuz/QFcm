@@ -47,7 +47,7 @@ void FcmWorker::processClient()
                         {
                             .hostName = obj.value("hostname").toString("error"),
                             .keyData = obj.value("key").toString("error"),
-                            .value = obj.value("value").toString("error"),
+                            .value = obj.value("value").toVariant(),
                             .virtualId = static_cast<quint16>(obj.value("id").toInt(0)),
                             .clock = obj.value("clock").toInt(-1),
                         };
@@ -120,10 +120,13 @@ bool FcmWorker::addToDataBaseAgent(const FCM::Agent& agent)
 
     for (auto const& it : agentDataArray)
     {
+        const auto newVal = it.value.canConvert<QVariantList>() ?
+            it.value.toStringList().join(',') :
+            it.value.toString();
         //qDebug() << it.value.toJsonObject() << "\n" << QJsonDocument(it.value.toJsonObject()).toJson(QJsonDocument::Compact) << "\n";
         //QString jsonString = QJsonDocument(it.value.toJsonObject()).toJson(QJsonDocument::Compact).toStdString().c_str();
         querys.push_back(DataBase::insertAgentData.arg(it.hostName, it.keyData)
-                         .arg(static_cast<int>(it.clock)).arg(it.value.toString()));
+                         .arg(static_cast<int>(it.clock)).arg(newVal));
     }
     emit addAgentData(querys);
     return true;
