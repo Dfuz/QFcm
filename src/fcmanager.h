@@ -1,22 +1,23 @@
 #ifndef FCMANAGER_H
 #define FCMANAGER_H
 
-#include <QCoreApplication>
+#include <QtConcurrent/QtConcurrent>
+#include <QRegularExpression>
 #include <QtSql/QSqlDatabase>
-#include <QtSql>
+#include <QCoreApplication>
+#include <QJsonDocument>
+#include <QMutexLocker>
+#include <QJsonObject>
 #include <QTcpServer>
 #include <QSettings>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QFile>
 #include <QTimer>
 #include <QMutex>
-#include <QMutexLocker>
-#include <QRegularExpression>
-#include <QtConcurrent/QtConcurrent>
+#include <QFile>
+#include <QtSql>
+#include <QMap>
+
 #include <chrono>
 #include <map>
-#include <QMap>
 
 #include "threads/fcmWorker.h"
 #include "agents/agentsinfo.h"
@@ -61,19 +62,13 @@ private:
     int port{0};
     QSqlDatabase db;
 
-    //qint32 is QHostAddress::toIPv4Address()
-    std::map<FcmWorker*, FCM::AgentVariant> agents;
-    std::map<QString, FCM::AgentVariant> allAgents;
-
-    QMutex agentsMutex;
-
 signals:
     void gotData(const QPair<qint32, FCM::dataFromAgent> &);
     void agentConnectedRetranslate(FCM::AgentVariant);
 
 private slots:
     void addToDataBaseAgent(const QStringList& list);
-
+    void justExecQuery(const QString& query);
 };
 
 #endif

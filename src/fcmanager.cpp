@@ -7,15 +7,15 @@ FCManager::FCManager(QObject *parent) :
 {
     qRegisterMetaType<FCM::AgentVariant>();
     db = QSqlDatabase::addDatabase("QSQLITE");
-    db.setDatabaseName("QFcm.sqlite");
-    if (!QFile::exists("QFcm.sqlite"))
+    db.setDatabaseName("QFcm.db");
+    if (!QFile::exists("QFcm.db"))
         qDebug() << "Не удалось найти базу данных, создаем новую...";
     dataBaseState = db.open();
     if (!dataBaseState)
         qDebug() << "Не удалось открыть базу данных";
     else
     {
-        foreach(QString queryStr, DataBase::createDataBase.split(";", QString::SkipEmptyParts))
+        foreach(QString queryStr, DataBase::createDataBase.split(";", Qt::SkipEmptyParts))
             db.exec(queryStr);
         db.exec(DataBase::foreignKeysOn);
         db.commit();
@@ -69,21 +69,7 @@ void FCManager::incomingConnection(qintptr socketDescriptor)
     connect(thread, &QThread::finished, threadWorker, &FcmWorker::deleteLater);
     connect(threadWorker, &FcmWorker::finished, thread, &QThread::quit);
     connect(threadWorker, &FcmWorker::finished, threadWorker, &FcmWorker::deleteLater);
-    connect(threadWorker, &FcmWorker::addAgentData, this, &FCManager::addToDataBaseAgent);
-
-    //threadWorker->db = QSqlDatabase::cloneDatabase(db, threadWorker->connectionName);
-    //threadWorker->connectionName = "my_db_" + QUuid::createUuid().toString();
-
-    /*connect(threadWorker, &FcmWorker::agentConnected, this, [&](const auto& agent){
-        agents[threadWorker] = agent;
-    }, Qt::QueuedConnection);
-
-    connect(threadWorker, &FcmWorker::finished, this, [&](){
-        agents.erase(threadWorker);
-    }, Qt::QueuedConnection);*/
-
-    //connect(threadWorker, &FcmWorker::agentConnected, this, &FCManager::agentConnectedRetranslate);
-
+    connect(threadWorker, &FcmWorker::addAgentData, this, &FCManager::addToDataBaseAgent, Qt::ConnectionType::QueuedConnection);
     threadWorker->moveToThread(thread);
 
     thread->start();
@@ -126,6 +112,8 @@ void FCManager::readConfig(QString settings_path)
 
 void FCManager::addToDataBaseAgent(const QStringList& list)
 {
+    if (!db.isOpen())
+        return;
     QSqlQuery query(list.at(0));
     qDebug() << "First query: " << list.at(0);
     qDebug() << "Second query: " << list.at(1);
@@ -144,4 +132,14 @@ void FCManager::addToDataBaseAgent(const QStringList& list)
             qDebug() << "Something went wrong... (SQL insertion)";
     }
     db.commit();
+}
+
+void FCManager::justExecQuery(const QString& query)
+{
+    if (!db.isOpen())
+        return;
+
+    QSqlQuery sqlQuery;
+    if (!sqlQuery.exec(query))
+        qDebug() << "SQL query ended with an error" << Qt::flush;
 }

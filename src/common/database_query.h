@@ -13,12 +13,13 @@ CREATE TABLE IF NOT EXISTS "Agents" (
     "Status"	INTEGER DEFAULT 0 CHECK(Status IN (0,1)),
     "MAC"       TEXT UNIQUE,
     PRIMARY KEY("MAC"));
-CREATE TABLE IF NOT EXISTS "AgentData" (
+CREATE TABLE IF NOT EXISTS "AgentsData" (
     "HostName"  TEXT NOT NULL,
     "KeyData"   TEXT,
     "Clock"     INTEGER,
     "Value"     TEXT,
-    FOREIGN KEY("HostName") REFERENCES "Agents"("HostName"));)";
+    FOREIGN KEY("HostName") REFERENCES "Agents"("HostName") ON DELETE CASCADE);"
+")";
 
 const static QString foreignKeysOn = "PRAGMA foreign_keys = ON;";
 
@@ -28,15 +29,15 @@ const static QString updateAgent = "UPDATE Agents SET MAC=%1, Address=%2, Status
 
 const static QString deleteAgent = "DELETE FROM Agents WHERE HostName=%1;";
 
-const static QString insertAgentData = "INSERT INTO AgentData (HostName, KeyData, Clock, Value) VALUES('%1', '%2', %3, '%4');";
+const static QString insertAgentData = "INSERT INTO AgentsData (HostName, KeyData, Clock, Value) VALUES('%1', '%2', %3, '%4');";
 
 const static QString selectAllAgents = "SELECT MAC, HostName, Address, Status FROM Agents;";
 
 const static QString checkAgentExists = "SELECT HostName FROM Agents WHERE HostName='%1'";
 
-const static QString updateAgentData = "UPDATE AgentData SET JsonData=:jsondata WHERE MAC=:mac;";
+const static QString updateAgentData = "UPDATE AgentsData SET JsonData=:jsondata WHERE MAC=:mac;";
 
-const static QString deleteAgentData = "DELETE FROM AgentData WHERE MAC=:mac;";
+const static QString deleteAgentData = "DELETE FROM AgentsData WHERE MAC=:mac;";
 
 
 }
