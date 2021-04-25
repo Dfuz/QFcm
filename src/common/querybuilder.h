@@ -170,10 +170,9 @@ private:
 
         qDebug() << "Query: waiting to read";
 
-        if (!socket->waitForReadyRead(2'500))
+        if (!socket->waitForReadyRead(1'500))
         {
-            qWarning() << "\n\n\nWarning!!! In wait forRead statement\n\n\n";
-            if (socket->bytesAvailable() == 0)
+            if(socket->bytesAvailable() == 0)
                 return std::nullopt;
         }
 

@@ -48,26 +48,28 @@ struct OS_STATUS
 
 struct Agent
 {
+    QString hostName;
     QString macAddress;
-    OS_STATUS status;
+   //OS_STATUS status;
 
-    void clearData(void)
+    /*void clearData(void)
     {
         status.allFs.clear();
         status.allPs.clear();
-    }
+    }*/
 };
 
 struct Proxy
 {
+    QString hostName;
     QString macAddress;
-    OS_STATUS status;
+    //OS_STATUS status;
 
-    void clearData(void)
+    /*void clearData(void)
     {
         status.allFs.clear();
         status.allPs.clear();
-    }
+    }*/
 };
 
 using AgentVariant = std::variant<Agent, Proxy>;

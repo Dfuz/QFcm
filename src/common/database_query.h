@@ -5,43 +5,39 @@
 
 namespace DataBase {
 
-// CREATE TABLE Agents(
-//   MAC    	TEXT NOT NULL UNIQUE PRIMARY KEY, 
-//   HostName	TEXT NOT NULL UNIQUE,
-//   Address	TEXT,
-//   Status	INTEGER DEFAULT 0 CHECK(Status IN(0,1))
-// );
-// CREATE TABLE AgentData(
-//   MAC		TEXT NOT NULL UNIQUE,
-//   JsonData	TEXT,
-//   FOREIGN KEY(MAC) REFERENCES Agents(MAC)
-// );
+const static QString createDataBase =
+R"(
+CREATE TABLE IF NOT EXISTS "Agents" (
+    "HostName"  TEXT NOT NULL UNIQUE,
+    "Address"	TEXT,
+    "Status"	INTEGER DEFAULT 0 CHECK(Status IN (0,1)),
+    "MAC"       TEXT UNIQUE,
+    PRIMARY KEY("MAC"));
+CREATE TABLE IF NOT EXISTS "AgentData" (
+    "HostName"  TEXT NOT NULL,
+    "KeyData"   TEXT,
+    "Clock"     INTEGER,
+    "Value"     TEXT,
+    FOREIGN KEY("HostName") REFERENCES "Agents"("HostName"));)";
 
+const static QString foreignKeysOn = "PRAGMA foreign_keys = ON;";
 
-const static char* createDataBase =
-      R"(CREATE TABLE IF NOT EXISTS "AgentData" (
-            "MAC"        TEXT NOT NULL UNIQUE,
-            "JsonData"	TEXT,
-            ")PRIMARY KEY("MAC");
-        "CREATE TABLE IF NOT EXISTS "Agents" (
-            "MAC"        TEXT NOT NULL UNIQUE,
-            "HostName"	TEXT NOT NULL UNIQUE,
-            "Address"	TEXT,
-            "Status"	INTEGER DEFAULT 0 CHECK(Status IN(0,1)),
-            "PRIMARY KEY("MAC"));
-            )";
+const static QString insertAgent = "INSERT INTO Agents (MAC, HostName, Address, Status) VALUES('%1', '%2', '%3', %4);";
 
-const static char* insertAgent = "INSERT INTO Agents (MAC, HostName, Address, Status) VALUES(:mac, :hostname, :address, :status);";
+const static QString updateAgent = "UPDATE Agents SET MAC=%1, Address=%2, Status=%3 WHERE HostName=%4;";
 
-const static char* updateAgent = "UPDATE Agents SET MAC=:mac, Address=:address, Status=:status WHERE HostName=:hostname;";
+const static QString deleteAgent = "DELETE FROM Agents WHERE HostName=%1;";
 
-const static char* deleteAgent = "DELETE FROM Agents WHERE HostName=:hostname;";
+const static QString insertAgentData = "INSERT INTO AgentData (HostName, KeyData, Clock, Value) VALUES('%1', '%2', %3, '%4');";
 
-const static char* insertAgentData = "INSERT INTO AgentData (MAC, JsonData) VALUES(:mac, :jsondata);";
+const static QString selectAllAgents = "SELECT MAC, HostName, Address, Status FROM Agents;";
 
-const static char* updateAgentData = "UPDATE AgentData SET JsonData=:jsondata WHERE MAC=:mac;";
+const static QString checkAgentExists = "SELECT HostName FROM Agents WHERE HostName='%1'";
 
-const static char* deleteAgentData = "DELETE FROM AgentData WHERE MAC=:mac;";
+const static QString updateAgentData = "UPDATE AgentData SET JsonData=:jsondata WHERE MAC=:mac;";
+
+const static QString deleteAgentData = "DELETE FROM AgentData WHERE MAC=:mac;";
+
 
 }
 

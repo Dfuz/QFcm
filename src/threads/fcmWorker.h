@@ -4,10 +4,14 @@
 #include <QThread>
 #include <QTcpSocket>
 #include <QHostAddress>
-#include <QDebug>
+#include <QtSql/QSqlDatabase>
+#include <QtSql>
 #include <type_traits>
+#include <QDebug>
+#include <Qt>
 
 #include "agents/agentsinfo.h"
+#include "common/database_query.h"
 #include "agents/agentdata.h"
 #include "common/querybuilder.h"
 #include "common/messagebuilder.h"
@@ -31,12 +35,15 @@ public:
 
 private:
     std::shared_ptr<Utils::QueryBuilder> query;
+    bool addToDataBaseAgent(const FCM::Agent& agent);
+    bool dataBaseState{0};
     quintptr _id;
 
 signals:
     void resultReady(const QString& result);
     void error(QTcpSocket::SocketError socketerror);
     void agentConnected(FCM::AgentVariant);
+    void addAgentData(const QStringList& sqlQuerys);
     void finished();
 
 public slots:

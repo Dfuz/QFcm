@@ -3,6 +3,7 @@
 
 #include <QCoreApplication>
 #include <QtSql/QSqlDatabase>
+#include <QtSql>
 #include <QTcpServer>
 #include <QSettings>
 #include <QJsonDocument>
@@ -23,6 +24,7 @@
 #include "common/message_spec/messagesendable.h"
 #include "common/message_spec/messagetypes.h"
 #include "common/messagebuilder.h"
+#include "common/database_query.h"
 #include "common/utils.h"
 
 using namespace std::chrono;
@@ -41,6 +43,7 @@ public:
     void readConfig(QString settings_path = "conf.json");
     bool startServer();
     static int getCompression(void);
+    static int getDataBaseState(void);
     static QString getHostName(void);
     friend class fcmanager_tests;
 
@@ -52,8 +55,9 @@ private:
     std::chrono::milliseconds timeOut{0};
     int currNumberOfAgents{0};
     int maxNumberOfAgents{0};
-    inline static int compression;
+    inline static bool dataBaseState{0};
     inline static QString hostName;
+    inline static int compression;
     int port{0};
     QSqlDatabase db;
 
@@ -68,6 +72,8 @@ signals:
     void agentConnectedRetranslate(FCM::AgentVariant);
 
 private slots:
+    void addToDataBaseAgent(const QStringList& list);
+
 };
 
 #endif

@@ -9,11 +9,17 @@ FCManager::FCManager(QObject *parent) :
     db = QSqlDatabase::addDatabase("QSQLITE");
     db.setDatabaseName("QFcm.sqlite");
     if (!QFile::exists("QFcm.sqlite"))
-    {
         qDebug() << "Не удалось найти базу данных, создаем новую...";
-    }
-    if (!db.open())
+    dataBaseState = db.open();
+    if (!dataBaseState)
         qDebug() << "Не удалось открыть базу данных";
+    else
+    {
+        foreach(QString queryStr, DataBase::createDataBase.split(";", QString::SkipEmptyParts))
+            db.exec(queryStr);
+        db.exec(DataBase::foreignKeysOn);
+        db.commit();
+    }
 }
 
 bool FCManager::startServer()
@@ -38,6 +44,11 @@ int FCManager::getCompression()
     return compression;
 }
 
+int FCManager::getDataBaseState()
+{
+    return dataBaseState;
+}
+
 QString FCManager::getHostName()
 {
     return hostName;
@@ -58,6 +69,10 @@ void FCManager::incomingConnection(qintptr socketDescriptor)
     connect(thread, &QThread::finished, threadWorker, &FcmWorker::deleteLater);
     connect(threadWorker, &FcmWorker::finished, thread, &QThread::quit);
     connect(threadWorker, &FcmWorker::finished, threadWorker, &FcmWorker::deleteLater);
+    connect(threadWorker, &FcmWorker::addAgentData, this, &FCManager::addToDataBaseAgent);
+
+    //threadWorker->db = QSqlDatabase::cloneDatabase(db, threadWorker->connectionName);
+    //threadWorker->connectionName = "my_db_" + QUuid::createUuid().toString();
 
     /*connect(threadWorker, &FcmWorker::agentConnected, this, [&](const auto& agent){
         agents[threadWorker] = agent;
@@ -107,4 +122,26 @@ void FCManager::readConfig(QString settings_path)
     if (settings.value("polling_rate").isNull())
         settings.setValue("polling_rate", "1m");
     timeOut = Utils::parseTime(settings.value("polling_rate").toString());
+}
+
+void FCManager::addToDataBaseAgent(const QStringList& list)
+{
+    QSqlQuery query(list.at(0));
+    qDebug() << "First query: " << list.at(0);
+    qDebug() << "Second query: " << list.at(1);
+    if (!query.next())
+    {
+        qDebug() << "Adding new Agent...";
+        if (query.exec(list.at(1)))
+            qDebug() << "Agent added successfully!";
+        else qDebug() << db.lastError();
+    }
+
+    for (int it = 2; it < list.size(); ++it)
+    {
+        qDebug() << it << " value: " << list.at(it);
+        if (!query.exec(list.at(it)))
+            qDebug() << "Something went wrong... (SQL insertion)";
+    }
+    db.commit();
 }
