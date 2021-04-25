@@ -42,6 +42,7 @@ class FCManager final : public QTcpServer
 public:
     explicit FCManager(QObject *parent = 0);
     void readConfig(QString settings_path = "conf.json");
+    bool initDBConnection();
     bool startServer();
     static int getCompression(void);
     static int getDataBaseState(void);
@@ -56,7 +57,8 @@ private:
     std::chrono::milliseconds timeOut{0};
     int currNumberOfAgents{0};
     int maxNumberOfAgents{0};
-    inline static bool dataBaseState{0};
+    inline static QString dataBaseName{"QFcm.db"};
+    inline static bool dataBaseState{false};
     inline static QString hostName;
     inline static int compression;
     int port{0};

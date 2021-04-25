@@ -15,13 +15,14 @@ inline bool readJsonFile(QIODevice &device, QSettings::SettingsMap &map)
 {
     QByteArray readedBytes = device.readAll();
     QJsonDocument resJson = QJsonDocument::fromJson(readedBytes);
-    if (resJson.isNull()) {
-        //TODO: handle error
-        qWarning() << " got null";
+    if (resJson.isNull())
+    {
+        qWarning() << "JSON: got null";
         return false;
     }
-    if (!resJson.isObject()) {
-        qInfo() << resJson << " is not Object (wrong format)";
+    if (!resJson.isObject())
+    {
+        qInfo() << resJson << " is not JSON object (wrong format)";
         return false;
     }
     map = resJson.object().toVariantMap();
@@ -36,7 +37,7 @@ inline bool writeJsonFile(QIODevice &device, const QSettings::SettingsMap &map)
     if (written == -1) {
         return false;
     } else {
-        qInfo() << "written " << written << " bytes";
+        qDebug() << "JSON: Written " << written << " bytes";
         return true;
     }
 }
@@ -53,14 +54,14 @@ inline std::chrono::milliseconds parseTime(const QString& input)
     hour{"[0-9]+h"};
 
     auto const msMatch   = ms.match(input).captured(),
-            sMatch    =  s.match(input).captured(),
-            minMatch  = min.match(input).captured(),
-            hourMatch = hour.match(input).captured();
+               sMatch    =  s.match(input).captured(),
+               minMatch  = min.match(input).captured(),
+               hourMatch = hour.match(input).captured();
 
     auto const pos_ms    = msMatch.lastIndexOf("ms"),
-            pos_s     = sMatch.lastIndexOf('s'),
-            pos_min   = minMatch.lastIndexOf('m'),
-            pos_hour  = hourMatch.lastIndexOf('h');
+               pos_s     = sMatch.lastIndexOf('s'),
+               pos_min   = minMatch.lastIndexOf('m'),
+               pos_hour  = hourMatch.lastIndexOf('h');
 
     time += std::chrono::hours{hourMatch.left(pos_hour).toInt()};
     time += std::chrono::minutes{minMatch.left(pos_min).toInt()};

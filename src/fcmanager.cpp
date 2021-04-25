@@ -6,20 +6,6 @@ FCManager::FCManager(QObject *parent) :
     QTcpServer(parent)
 {
     qRegisterMetaType<FCM::AgentVariant>();
-    db = QSqlDatabase::addDatabase("QSQLITE");
-    db.setDatabaseName("QFcm.db");
-    if (!QFile::exists("QFcm.db"))
-        qDebug() << "Не удалось найти базу данных, создаем новую...";
-    dataBaseState = db.open();
-    if (!dataBaseState)
-        qDebug() << "Не удалось открыть базу данных";
-    else
-    {
-        foreach(QString queryStr, DataBase::createDataBase.split(";", Qt::SkipEmptyParts))
-            db.exec(queryStr);
-        db.exec(DataBase::foreignKeysOn);
-        db.commit();
-    }
 }
 
 bool FCManager::startServer()
@@ -108,6 +94,32 @@ void FCManager::readConfig(QString settings_path)
     if (settings.value("polling_rate").isNull())
         settings.setValue("polling_rate", "1m");
     timeOut = Utils::parseTime(settings.value("polling_rate").toString());
+
+    if (settings.value("databasefile").isNull())
+        settings.setValue("databasefile", 0);
+    dataBaseName = settings.value("databasefile").toString();
+}
+
+bool FCManager::initDBConnection()
+{
+    db = QSqlDatabase::addDatabase("QSQLITE");
+    db.setDatabaseName("QFcm.db");
+    if (!QFile::exists("QFcm.db"))
+        qDebug() << "Не удалось найти базу данных, создаем новую...";
+    dataBaseState = db.open();
+    if (!dataBaseState)
+    {
+        qDebug() << "Не удалось открыть базу данных";
+        return false;
+    }
+    else
+    {
+        foreach(QString queryStr, DataBase::createDataBase.split(";", Qt::SkipEmptyParts))
+            db.exec(queryStr);
+        db.exec(DataBase::foreignKeysOn);
+        db.commit();
+        return true;
+    }
 }
 
 void FCManager::addToDataBaseAgent(const QStringList& list)
