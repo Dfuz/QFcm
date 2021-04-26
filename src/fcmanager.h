@@ -6,6 +6,10 @@
 #include <QRegularExpression>
 #include <QtSql/QSqlDatabase>
 #include <QCoreApplication>
+#include <QDBusAbstractAdaptor>
+#include <QDBusVariant>
+#include <QDBusArgument>
+#include <QDBusContext>
 #include <QJsonDocument>
 #include <QMutexLocker>
 #include <QJsonObject>

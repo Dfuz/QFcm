@@ -15,7 +15,7 @@ if(UNIX)
 endif()
 
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Core REQUIRED)
-find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Network Sql REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Network Sql DBus REQUIRED)
 
 set(TOP_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -26,14 +26,18 @@ include(coverage.cmake)
 list(APPEND QT_MODULES
     Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Network
-    Qt${QT_VERSION_MAJOR}::Sql)
+    Qt${QT_VERSION_MAJOR}::Sql
+    Qt${QT_VERSION_MAJOR}::DBus
+    )
 
 list(APPEND SOURCES
     ${TOP_DIR}/src/fcmanager.cpp
+    ${TOP_DIR}/src/fcmanager_adapter.cpp
     ${TOP_DIR}/src/threads/fcmWorker.cpp)
 
 list(APPEND HEADERS
     ${TOP_DIR}/src/fcmanager.h
+    ${TOP_DIR}/src/fcmanager_adapter.h
     ${TOP_DIR}/src/agents/agentsinfo.h
     ${TOP_DIR}/src/agents/agentdata.h
     ${TOP_DIR}/src/threads/fcmWorker.h
@@ -49,6 +53,7 @@ list(APPEND HEADERS
     ${TOP_DIR}/src/common/message_spec/messagereadable_service.h
     ${TOP_DIR}/src/common/message_spec/messagereadable_test.h
     ${TOP_DIR}/src/common/message_spec/messagereadable_data.h
+    ${TOP_DIR}/src/common/service_name_and_property.h
     )
 
 add_subdirectory(src)
