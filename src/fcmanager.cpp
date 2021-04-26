@@ -126,15 +126,16 @@ void FCManager::addToDataBaseAgent(const QStringList& list)
 {
     if (!db.isOpen())
         return;
-    QSqlQuery query(list.at(0));
+    QSqlQuery query;
     qDebug() << "First query: " << list.at(0);
     qDebug() << "Second query: " << list.at(1);
+    query.exec(list.at(0));
     if (!query.next())
     {
         qDebug() << "Adding new Agent...";
         if (query.exec(list.at(1)))
             qDebug() << "Agent added successfully!";
-        else qDebug() << db.lastError();
+        else qDebug() << db.lastError().text();
     }
 
     for (int it = 2; it < list.size(); ++it)
@@ -153,5 +154,5 @@ void FCManager::justExecQuery(const QString& query)
 
     QSqlQuery sqlQuery;
     if (!sqlQuery.exec(query))
-        qDebug() << "SQL query ended with an error" << Qt::flush;
+        qDebug() << "SQL query ended with an error" << db.lastError().text() << Qt::flush;
 }

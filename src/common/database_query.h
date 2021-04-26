@@ -11,8 +11,8 @@ CREATE TABLE IF NOT EXISTS "Agents" (
     "HostName"  TEXT NOT NULL UNIQUE,
     "Address"	TEXT,
     "Status"	INTEGER DEFAULT 0 CHECK(Status IN (0,1)),
-    "MAC"       TEXT UNIQUE,
-    PRIMARY KEY("MAC"));
+    "MAC"       TEXT,
+    PRIMARY KEY("HostName"));
 CREATE TABLE IF NOT EXISTS "AgentsData" (
     "HostName"  TEXT NOT NULL,
     "KeyData"   TEXT,
