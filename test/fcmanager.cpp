@@ -30,10 +30,9 @@ private slots:
 
         QVERIFY(QFile::exists("conf.json"));
 
-        QCOMPARE(manager.addr, QHostAddress{QHostAddress::LocalHost});
+        QCOMPARE(manager.ipAddress, QHostAddress{QHostAddress::LocalHost});
         QCOMPARE(manager.port, 1234);
         QCOMPARE(manager.maxNumberOfAgents, 4);
-        QCOMPARE(manager.timeOut, std::chrono::milliseconds{0} + std::chrono::minutes{1});
     }
 
     void settingsFile()
@@ -48,10 +47,9 @@ private slots:
         FCManager manager{};
         manager.readConfig(file.fileName());
 
-        QCOMPARE(manager.addr, QHostAddress{QHostAddress::AnyIPv4});
+        QCOMPARE(manager.ipAddress, QHostAddress{QHostAddress::AnyIPv4});
         QCOMPARE(manager.port, 4000);
         QCOMPARE(manager.maxNumberOfAgents, 10);
-        QCOMPARE(manager.timeOut, std::chrono::milliseconds{0} + std::chrono::minutes{1} + std::chrono::seconds{1});
 
         QFile::remove(file.fileName());
     }

@@ -10,35 +10,21 @@ FCManager::FCManager(QObject *parent) :
 
 bool FCManager::startServer()
 {
-    if(!this->listen(addr, port))
+    if(!this->listen(ipAddress, port))
     {
-        qDebug() << "Не удалось запустить сервер";
-        qDebug() << "Адрес:" << addr.toString() << "порт:" << port << "...";
-        qDebug() << "Ошибка:" << this->errorString();
+        qInfo() << QTime::currentTime().toString(Qt::ISODateWithMs) << "Не удалось запустить сервер";
+        qInfo() << "Адрес:" << ipAddress.toString().trimmed().remove('\"') << "порт:" << port << "...";
+        qInfo() << "Ошибка:" << this->errorString() << Qt::flush;
         return false;
     }
     else
     {
-        qDebug() << "Сервер запустился";
-        qDebug() << "Адрес:" << addr.toString() << "порт:" << port << "...";
+        qInfo() << QTime::currentTime().toString(Qt::ISODateWithMs) << "Сервер запустился";
+        qInfo() << "Адрес:" << ipAddress.toString().trimmed().remove('\"') << "порт:" << port << "...";
     }
     return true;
 }
 
-int FCManager::getCompression()
-{
-    return compression;
-}
-
-int FCManager::getDataBaseState()
-{
-    return dataBaseState;
-}
-
-QString FCManager::getHostName()
-{
-    return hostName;
-}
 
 void FCManager::incomingConnection(qintptr socketDescriptor)
 {
@@ -69,21 +55,17 @@ void FCManager::readConfig(QString settings_path)
 
     settings_path = settings.fileName();
 
-    if (settings.value("port").isNull())
-        settings.setValue("port", 1234);
-    port = settings.value("port").toInt();
+    if (!settings.value("port").isNull())
+        port = settings.value("port").toInt();
 
-    if (settings.value("address").isNull())
-        settings.setValue("address", "127.0.0.1");
-    addr = QHostAddress{settings.value("address").toString()};
+    if (!settings.value("address").isNull())
+        ipAddress = QHostAddress{settings.value("address").toString()};
 
-    if (settings.value("max_agents").isNull())
-        settings.setValue("max_agents", 4);
-    maxNumberOfAgents = settings.value("max_agents").toInt();
+    if (!settings.value("max_agents").isNull())
+        maxNumberOfAgents = settings.value("max_agents").toInt();
 
-    if (settings.value("compression").isNull())
-        settings.setValue("compression", 0);
-    compression = settings.value("compression").toInt();
+    if (!settings.value("compression").isNull())
+        compression = settings.value("compression").toInt();
 
     // если имя хоста не задано, то в качестве имени будет взят хэш от мак-адреса
     if (settings.value("HostName").isNull())
@@ -91,13 +73,8 @@ void FCManager::readConfig(QString settings_path)
                                               QCryptographicHash::Md4).toBase64();
     else hostName = settings.value("HostName").toString();
 
-    if (settings.value("polling_rate").isNull())
-        settings.setValue("polling_rate", "1m");
-    timeOut = Utils::parseTime(settings.value("polling_rate").toString());
-
-    if (settings.value("databasefile").isNull())
-        settings.setValue("databasefile", 0);
-    dataBaseName = settings.value("databasefile").toString();
+    if (!settings.value("databasefile").isNull())
+        dataBaseName = settings.value("databasefile").toString();
 }
 
 bool FCManager::initDBConnection()
@@ -155,4 +132,56 @@ void FCManager::justExecQuery(const QString& query)
     QSqlQuery sqlQuery;
     if (!sqlQuery.exec(query))
         qDebug() << "SQL query ended with an error" << db.lastError().text() << Qt::flush;
+}
+
+// GETTERS
+int FCManager::getCompression()
+{
+    return compression;
+}
+
+int FCManager::getDataBaseState()
+{
+    return dataBaseState;
+}
+
+QString FCManager::getHostName()
+{
+    return hostName;
+}
+
+int FCManager::getMaxNumberOfAgents() const
+{
+    return maxNumberOfAgents;
+}
+
+// SETTERS
+void FCManager::setCompression(const int &newCompress)
+{
+    compression = newCompress;
+}
+
+void FCManager::setHostName(const QString &newHostName)
+{
+    hostName = newHostName;
+}
+
+void FCManager::setIpAddress(const QString &newIpAddress)
+{
+    ipAddress = QHostAddress{newIpAddress};
+}
+
+void FCManager::setDBFile(const QString &newDBName)
+{
+    dataBaseName = newDBName;
+}
+
+void FCManager::setPort(const int &newPort)
+{
+    port = newPort;
+}
+
+void FCManager::setMaxNumberOfAgents(int newMaxNumberOfAgents)
+{
+    maxNumberOfAgents = newMaxNumberOfAgents;
 }

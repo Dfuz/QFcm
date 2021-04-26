@@ -9,8 +9,6 @@ void FcmWorker::processClient()
     qDebug() << "[Worker Thread]" << "[ID:" << QThread::currentThreadId() << "]" << "Поток запущен...";
 
     query = std::make_shared<Utils::QueryBuilder>(_id);
-
-    //connect(query->socket.get(), &QTcpSocket::readyRead, this, &FcmWorker::readyRead, Qt::DirectConnection);
     connect(query->socket.get(), &QTcpSocket::disconnected, this, &FcmWorker::disconnected);
     
     auto agent = performHandshake(query);
@@ -74,6 +72,7 @@ void FcmWorker::processClient()
             }
         }, *agent);
     }
+    else emit finished();
 }
 
 std::optional<FCM::AgentVariant> FcmWorker::performHandshake(std::shared_ptr<Utils::QueryBuilder> _query)
@@ -86,7 +85,7 @@ std::optional<FCM::AgentVariant> FcmWorker::performHandshake(std::shared_ptr<Uti
     };
 
     auto response = _query->makeQuery()
-            .toSend(Utils::HandshakeMessage{payload})  //FIXME: как ты передашь информацию о компрессии уже заюзав компрессию
+            .toSend(Utils::HandshakeMessage{payload})
             .toGet<Utils::Handshake>()
             .invoke();
 
@@ -123,8 +122,6 @@ bool FcmWorker::addToDataBaseAgent(const FCM::Agent& agent)
         const auto newVal = it.value.canConvert<QVariantList>() ?
             it.value.toStringList().join(',') :
             it.value.toString();
-        //qDebug() << it.value.toJsonObject() << "\n" << QJsonDocument(it.value.toJsonObject()).toJson(QJsonDocument::Compact) << "\n";
-        //QString jsonString = QJsonDocument(it.value.toJsonObject()).toJson(QJsonDocument::Compact).toStdString().c_str();
         querys.push_back(DataBase::insertAgentData.arg(it.hostName, it.keyData)
                          .arg(static_cast<int>(it.clock)).arg(newVal));
     }
@@ -138,6 +135,7 @@ void FcmWorker::readyRead()
 void FcmWorker::disconnected()
 {
     qDebug() << "[Worker Thread]" << "[ID:" << QThread::currentThreadId() << "]"
-             << "Клиент: " << getSocket()->peerAddress().toString() << ":" << getSocket()->peerPort() << " отключился...";
+             << "Клиент: " << getSocket()->peerAddress().toString()
+             << ":" << getSocket()->peerPort() << " отключился...";
     emit finished();
 }
