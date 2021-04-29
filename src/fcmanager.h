@@ -61,7 +61,7 @@ public:
     static int getDataBaseState(void);
     static QString getHostName(void);
     QStringList getAllAgents(void);
-    QStringList getAllAgentData(const QString& agent);
+    QString getAllAgentData(const QString& agent);
     int getMaxNumberOfAgents() const;
 
 protected:

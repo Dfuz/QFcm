@@ -164,27 +164,25 @@ QStringList FCManager::getAllAgents()
     {
         auto record = query.record();
         for (int i = 0; i < record.count(); ++i)
-            string += "," + record.value(i).toString();
+            string = record.value(i).toString();
         list << string;
     }
     return list;
 }
 
-QStringList FCManager::getAllAgentData(const QString &agent)
+QString FCManager::getAllAgentData(const QString &agent)
 {
     if (!db.isOpen())
         return {};
-    QStringList list;
-    QString string;
-    auto query = db.exec(DataBase::selectAllAgentData.arg(agent));
+    QString stringJSON;
+    auto query = db.exec(DataBase::selectAllAgentDataJSON.arg(agent));
     while(query.next())
     {
         auto record = query.record();
         for (int i = 0; i < record.count(); ++i)
-            string += "," + record.value(i).toString();
-        list << string;
+            stringJSON += record.value(i).toString();
     }
-    return list;
+    return stringJSON;
 }
 
 int FCManager::getMaxNumberOfAgents() const

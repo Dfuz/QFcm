@@ -17,7 +17,7 @@ public:
     explicit FCMAdapter(FCManager *parent);
 public slots:
     QStringList getAllAgents();
-    QStringList getAllAgentData(const QString& hostname);
+    QString getAllAgentData(const QString& hostname);
 signals:
     void queryWithAgentData(const QStringList& sqlQuerys);
 private:

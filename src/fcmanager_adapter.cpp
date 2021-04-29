@@ -11,7 +11,7 @@ QStringList FCMAdapter::getAllAgents()
     return m_parentManager->getAllAgents();
 }
 
-QStringList FCMAdapter::getAllAgentData(const QString &hostname)
+QString FCMAdapter::getAllAgentData(const QString &hostname)
 {
     return m_parentManager->getAllAgentData(hostname);
 }

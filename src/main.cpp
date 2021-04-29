@@ -13,6 +13,7 @@ int main(int argc, char *argv[])
     parser.addVersionOption();
     parser.addHelpOption();
     parser.addOption({{"n", "name"},        "Set hostname",    "value"});
+    parser.addOption({{"d", "dbus"},        "To turn off d-bus services"});
     parser.addOption({{"c", "compression"}, "Set compression", "value"});
     parser.addOption({{"f", "db"},          "Set data base file name", "value"});
     parser.addOption({{"j", "threads"},     "Set max thread count",    "value"});
@@ -42,17 +43,18 @@ int main(int argc, char *argv[])
 
     server.initDBConnection();
     if (!server.startServer())
-        application.exit(-1);
+        return 1;
 
-    QDBusConnection connection = QDBusConnection::sessionBus();
-    if(!connection.registerObject("/", &server)){
-        qDebug() << "Can't register object" << QDBusConnection::sessionBus().lastError().message();
-        application.exit(1);
-    }
-    if (!connection.registerService(SERVICE_NAME)) {
-        qDebug() << "Can't register service" << QDBusConnection::sessionBus().lastError().message();
-        application.exit(1);
-    }
+    if (!parser.isSet("dbus"))
+    {
+        QDBusConnection connection = QDBusConnection::sessionBus();
+        if(!connection.registerObject("/", &server)){
+            qWarning() << "Can't register object" << QDBusConnection::sessionBus().lastError().message();
+        }
+        else if (!connection.registerService(SERVICE_NAME)){
+            qWarning() << "Can't register service" << QDBusConnection::sessionBus().lastError().message();
+        }
+    } else qDebug() << "Starting manager without d-bus services...";
 
     return application.exec();
 }
