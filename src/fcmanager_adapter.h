@@ -6,25 +6,22 @@
 #include <QDBusArgument>
 #include <QDBusContext>
 
+#include "common/service_name_and_property.h"
 #include "fcmanager.h"
 
 class FCMAdapter : public QDBusAbstractAdaptor
 {
     Q_OBJECT
-    Q_CLASSINFO("D-Bus Interface", BUFFER_NAME)
-    Q_PROPERTY(QString IMAGE_DATA_SHARED_ID READ imageDataSharedId)
+    Q_CLASSINFO("D-Bus Interface", INTERFACE_NAME)
 public:
     explicit FCMAdapter(FCManager *parent);
-
-    QString imageDataSharedId();
-
 public slots:
-    TestStructure structureField();
+    QStringList getAllAgents();
+    QStringList getAllAgentData(const QString& hostname);
 signals:
-    void callingMe(QString, QString);
+    void queryWithAgentData(const QStringList& sqlQuerys);
 private:
-    Pong * m_parentPong;
-
+    FCManager* m_parentManager;
 };
 
 #endif

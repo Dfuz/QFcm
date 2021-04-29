@@ -31,7 +31,9 @@ const static QString deleteAgent = "DELETE FROM Agents WHERE HostName=%1;";
 
 const static QString insertAgentData = "INSERT INTO AgentsData (HostName, KeyData, Clock, Value) VALUES('%1', '%2', %3, '%4');"; //
 
-const static QString selectAllAgents = "SELECT MAC, HostName, Address, Status FROM Agents;";
+const static QString selectAllAgents = "SELECT HostName, Address, Status, MAC FROM Agents;";
+
+const static QString selectAllAgentData = "SELECT HostName, KeyData, Clock, Value FROM AgentsData WHERE HostName='%1'";
 
 const static QString checkAgentExists = "SELECT HostName FROM Agents WHERE HostName='%1'";
 

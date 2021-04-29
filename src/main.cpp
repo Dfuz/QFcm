@@ -1,4 +1,6 @@
 #include <QCommandLineParser>
+#include <QDBusConnection>
+#include <QDBusError>
 #include "fcmanager.h"
 
 int main(int argc, char *argv[])
@@ -41,5 +43,16 @@ int main(int argc, char *argv[])
     server.initDBConnection();
     if (!server.startServer())
         application.exit(-1);
+
+    QDBusConnection connection = QDBusConnection::sessionBus();
+    if(!connection.registerObject("/", &server)){
+        qDebug() << "Can't register object" << QDBusConnection::sessionBus().lastError().message();
+        application.exit(1);
+    }
+    if (!connection.registerService(SERVICE_NAME)) {
+        qDebug() << "Can't register service" << QDBusConnection::sessionBus().lastError().message();
+        application.exit(1);
+    }
+
     return application.exec();
 }

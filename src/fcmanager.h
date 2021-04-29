@@ -24,6 +24,7 @@
 #include <map>
 
 #include "threads/fcmWorker.h"
+#include "fcmanager_adapter.h"
 #include "agents/agentsinfo.h"
 #include "agents/agentdata.h"
 #include "common/message_spec/messagesendable.h"
@@ -34,6 +35,7 @@
 
 using namespace std::chrono;
 class FcmWorker;
+class FCMAdapter;
 
 class FCManager final : public QTcpServer
 {
@@ -58,6 +60,8 @@ public:
     static int getCompression(void);
     static int getDataBaseState(void);
     static QString getHostName(void);
+    QStringList getAllAgents(void);
+    QStringList getAllAgentData(const QString& agent);
     int getMaxNumberOfAgents() const;
 
 protected:
@@ -65,6 +69,7 @@ protected:
 
 private:
     QHostAddress ipAddress{QHostAddress::AnyIPv4};
+    std::unique_ptr<FCMAdapter> dbusAdapter;
     //QAtomicInteger<int> currNumberOfAgents{0};
     int maxNumberOfAgents{2};
     inline static QString dataBaseName{"QFcm.db"};

@@ -6,6 +6,7 @@ FCManager::FCManager(QObject *parent) :
     QTcpServer(parent)
 {
     qRegisterMetaType<FCM::AgentVariant>();
+    dbusAdapter = std::make_unique<FCMAdapter>(this);
 }
 
 bool FCManager::startServer()
@@ -42,6 +43,8 @@ void FCManager::incomingConnection(qintptr socketDescriptor)
     connect(threadWorker, &FcmWorker::finished, thread, &QThread::quit);
     connect(threadWorker, &FcmWorker::finished, threadWorker, &FcmWorker::deleteLater);
     connect(threadWorker, &FcmWorker::addAgentData, this, &FCManager::addToDataBaseAgent, Qt::ConnectionType::QueuedConnection);
+    connect(threadWorker, &FcmWorker::addAgentData, this->dbusAdapter.get(), &FCMAdapter::queryWithAgentData, Qt::ConnectionType::QueuedConnection);
+
     threadWorker->moveToThread(thread);
 
     thread->start();
@@ -148,6 +151,40 @@ int FCManager::getDataBaseState()
 QString FCManager::getHostName()
 {
     return hostName;
+}
+
+QStringList FCManager::getAllAgents()
+{
+    if (!db.isOpen())
+        return {};
+    QStringList list;
+    QString string;
+    auto query = db.exec(DataBase::selectAllAgents);
+    while(query.next())
+    {
+        auto record = query.record();
+        for (int i = 0; i < record.count(); ++i)
+            string += "," + record.value(i).toString();
+        list << string;
+    }
+    return list;
+}
+
+QStringList FCManager::getAllAgentData(const QString &agent)
+{
+    if (!db.isOpen())
+        return {};
+    QStringList list;
+    QString string;
+    auto query = db.exec(DataBase::selectAllAgentData.arg(agent));
+    while(query.next())
+    {
+        auto record = query.record();
+        for (int i = 0; i < record.count(); ++i)
+            string += "," + record.value(i).toString();
+        list << string;
+    }
+    return list;
 }
 
 int FCManager::getMaxNumberOfAgents() const
