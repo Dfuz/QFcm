@@ -20,7 +20,7 @@ public slots:
     QString getAllAgentData(const QString& hostname);
     bool deleteAgent(const QString& hostname);
 signals:
-    void queryWithAgentData(const QStringList& sqlQuerys);
+    void dataJsonList(const QStringList& sqlQuerys);
 private:
     FCManager* m_parentManager;
 };

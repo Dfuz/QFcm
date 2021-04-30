@@ -43,13 +43,38 @@ void FCManager::incomingConnection(qintptr socketDescriptor)
     connect(threadWorker, &FcmWorker::finished, thread, &QThread::quit);
     connect(threadWorker, &FcmWorker::finished, threadWorker, &FcmWorker::deleteLater);
     connect(threadWorker, &FcmWorker::addAgentData, this, &FCManager::addToDataBaseAgent, Qt::ConnectionType::QueuedConnection);
-    connect(threadWorker, &FcmWorker::addAgentData, this->dbusAdapter.get(), &FcmAdapter::queryWithAgentData, Qt::ConnectionType::QueuedConnection);
+    connect(this, &FCManager::newData, this->dbusAdapter.get(), &FcmAdapter::dataJsonList, Qt::ConnectionType::QueuedConnection);
 
     threadWorker->moveToThread(thread);
 
     thread->start();
     qDebug() << "[Main Thread  ]" << "[ID:" << QThread::currentThreadId() << "]" << "Поток запущен...";
     return;
+}
+
+inline const QString FCManager::parseSqlQuery(const QString &query) const
+{
+    QVariantMap jsonMap;
+    if (query.contains("INSERT", Qt::CaseInsensitive))
+    {
+        QRegularExpression regexp(R"(\((.*?)\))");
+        qDebug() << regexp;
+        auto match_it = regexp.globalMatch(query);
+
+        if (!match_it.hasNext())
+            return {};
+
+        auto keyList = match_it.next().captured(0).split(QLatin1Char(','), Qt::SkipEmptyParts);
+
+        auto valueList = match_it.hasNext() ?
+                match_it.next().captured(0).split(QLatin1Char(','), Qt::SkipEmptyParts) : QStringList();
+
+        if (keyList.size() != valueList.size())
+            return {};
+        for (int i = 0; i < keyList.size(); ++i)
+            jsonMap.insert(keyList[i], valueList[i]);
+    }
+    return QJsonDocument(QJsonObject::fromVariantMap(jsonMap)).toJson(QJsonDocument::Compact);
 }
 
 void FCManager::readConfig(QString settings_path)
@@ -107,15 +132,19 @@ void FCManager::addToDataBaseAgent(const QStringList& list)
     if (!db.isOpen())
         return;
     QSqlQuery query;
+    QStringList jsonList;
     qDebug() << "First query: " << list.at(0);
     qDebug() << "Second query: " << list.at(1);
     query.exec(list.at(0));
     if (!query.next())
     {
-        qDebug() << "Adding new Agent...";
+        qInfo() << "Adding new Agent...";
         if (query.exec(list.at(1)))
-            qDebug() << "Agent added successfully!";
-        else qDebug() << db.lastError().text();
+        {
+            qInfo() << "Agent added successfully!";
+            jsonList << parseSqlQuery(list.at(1));
+        }
+        else qWarning() << db.lastError().text();
     }
 
     for (int it = 2; it < list.size(); ++it)
@@ -123,8 +152,10 @@ void FCManager::addToDataBaseAgent(const QStringList& list)
         qDebug() << it << " value: " << list.at(it);
         if (!query.exec(list.at(it)))
             qDebug() << "Something went wrong... (SQL insertion)";
+        else jsonList << parseSqlQuery(list.at(it));
     }
     db.commit();
+    emit newData(jsonList);
 }
 
 void FCManager::justExecQuery(const QString& query)

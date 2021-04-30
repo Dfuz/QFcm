@@ -154,6 +154,27 @@ private slots:
         QVERIFY(thread.result());
     }
 
+//    void testParseSql()
+//    {
+//        auto startTime = std::chrono::high_resolution_clock::now();
+//        auto query = DataBase::insertAgent.arg("PC_1", "254.234.234.2:36500")
+//                             .arg(1)
+//                             .arg("234:432:452");
+
+//        auto endTime = std::chrono::high_resolution_clock::now();
+//        auto durationTime = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count();
+//        qDebug() << "microseconds spent: " << durationTime;
+
+//        qDebug() << "Query string: " << query;
+//        auto jsonString = FCManager::parseSqlQuery(query);
+//        qDebug() << "Json string: " << jsonString;
+//        QVERIFY(!jsonString.isEmpty());
+
+//        auto jsonDoc = QJsonDocument::fromJson(jsonString.toUtf8());
+//        qDebug() << jsonDoc.object().toVariantMap();
+//        QVERIFY(jsonDoc.isObject());
+//    }
+
     void testHandhake()
     {
         QSKIP("До лучших времен...");

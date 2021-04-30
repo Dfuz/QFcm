@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS "AgentsData" (
 
 const static QString foreignKeysOn = "PRAGMA foreign_keys = ON;"; // dffggg
 
-const static QString insertAgent = "INSERT INTO Agents (HostName, Address, Status, MAC) VALUES('%1', '%2', '%3', %4);"; //
+const static QString insertAgent = "INSERT INTO Agents (HostName, Address, Status, MAC) VALUES('%1', '%2', %3, '%4');"; //
 
 const static QString updateAgent = "UPDATE Agents SET %1 WHERE HostName='%2';";
 

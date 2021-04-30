@@ -77,14 +77,16 @@ private:
     inline static QString hostName;
     inline static bool dataBaseState{false};
     inline static int compression{0};
+    const QString parseSqlQuery(const QString& query) const;
     QSqlDatabase db;
     int port{0};
 
     bool deleteAgent(const QString& hostName);
 
 signals:
-    void gotData(const QPair<qint32, FCM::dataFromAgent> &);
-    void agentConnectedRetranslate(FCM::AgentVariant);
+    //void gotData(const QPair<qint32, FCM::dataFromAgent> &);
+    //void agentConnectedRetranslate(FCM::AgentVariant);
+    void newData(const QStringList jsonList);
 
 private slots:
     void addToDataBaseAgent(const QStringList& list);
