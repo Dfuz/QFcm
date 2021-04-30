@@ -113,9 +113,9 @@ bool FcmWorker::addToDataBaseAgent(const FCM::Agent& agent)
     QStringList querys;
     querys.push_back(DataBase::checkAgentExists.arg(agent.hostName));
     querys.push_back(DataBase::insertAgent
-                     .arg(agent.macAddress, agent.hostName, QString(getSocket()->peerAddress().toString() + ":"
+                     .arg(agent.hostName, QString(getSocket()->peerAddress().toString() + ":"
                                                           + QString::number(getSocket()->peerPort())))
-                     .arg(1));
+                     .arg(1).arg(agent.macAddress));
 
     for (auto const& it : agentDataArray)
     {

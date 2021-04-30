@@ -8,7 +8,7 @@ namespace DataBase {
 const static QString createDataBase =
 R"(
 CREATE TABLE IF NOT EXISTS "Agents" (
-    "HostName"  TEXT NOT NULL UNIQUE,
+    "HostName"	TEXT NOT NULL CHECK(HostName <> '') UNIQUE,
     "Address"	TEXT,
     "Status"	INTEGER DEFAULT 0 CHECK(Status IN (0,1)),
     "MAC"       TEXT,
@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS "AgentsData" (
 
 const static QString foreignKeysOn = "PRAGMA foreign_keys = ON;"; // dffggg
 
-const static QString insertAgent = "INSERT INTO Agents (MAC, HostName, Address, Status) VALUES('%1', '%2', '%3', %4);"; //
+const static QString insertAgent = "INSERT INTO Agents (HostName, Address, Status, MAC) VALUES('%1', '%2', '%3', %4);"; //
 
 const static QString updateAgent = "UPDATE Agents SET %1 WHERE HostName='%2';";
 

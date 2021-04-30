@@ -6,7 +6,7 @@ FCManager::FCManager(QObject *parent) :
     QTcpServer(parent)
 {
     qRegisterMetaType<FCM::AgentVariant>();
-    dbusAdapter = std::make_unique<FCMAdapter>(this);
+    dbusAdapter = std::make_unique<FcmAdapter>(this);
 }
 
 bool FCManager::startServer()
@@ -43,7 +43,7 @@ void FCManager::incomingConnection(qintptr socketDescriptor)
     connect(threadWorker, &FcmWorker::finished, thread, &QThread::quit);
     connect(threadWorker, &FcmWorker::finished, threadWorker, &FcmWorker::deleteLater);
     connect(threadWorker, &FcmWorker::addAgentData, this, &FCManager::addToDataBaseAgent, Qt::ConnectionType::QueuedConnection);
-    connect(threadWorker, &FcmWorker::addAgentData, this->dbusAdapter.get(), &FCMAdapter::queryWithAgentData, Qt::ConnectionType::QueuedConnection);
+    connect(threadWorker, &FcmWorker::addAgentData, this->dbusAdapter.get(), &FcmAdapter::queryWithAgentData, Qt::ConnectionType::QueuedConnection);
 
     threadWorker->moveToThread(thread);
 
@@ -135,6 +135,16 @@ void FCManager::justExecQuery(const QString& query)
     QSqlQuery sqlQuery;
     if (!sqlQuery.exec(query))
         qDebug() << "SQL query ended with an error" << db.lastError().text() << Qt::flush;
+}
+
+bool FCManager::deleteAgent(const QString& hostName)
+{
+    if (!db.isOpen())
+        return false;
+
+    QSqlQuery query;
+    query.prepare(DataBase::deleteAgent.arg(hostName));
+    return query.exec();
 }
 
 // GETTERS

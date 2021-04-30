@@ -35,7 +35,7 @@
 
 using namespace std::chrono;
 class FcmWorker;
-class FCMAdapter;
+class FcmAdapter;
 
 class FCManager final : public QTcpServer
 {
@@ -47,6 +47,7 @@ public:
     bool initDBConnection();
     bool startServer();
     friend class fcmanager_tests;
+    friend class FcmAdapter;
 
     // сеттеры
     void setIpAddress(const QString &newIpAddress);
@@ -69,7 +70,7 @@ protected:
 
 private:
     QHostAddress ipAddress{QHostAddress::AnyIPv4};
-    std::unique_ptr<FCMAdapter> dbusAdapter;
+    std::unique_ptr<FcmAdapter> dbusAdapter;
     //QAtomicInteger<int> currNumberOfAgents{0};
     int maxNumberOfAgents{2};
     inline static QString dataBaseName{"QFcm.db"};
@@ -78,6 +79,8 @@ private:
     inline static int compression{0};
     QSqlDatabase db;
     int port{0};
+
+    bool deleteAgent(const QString& hostName);
 
 signals:
     void gotData(const QPair<qint32, FCM::dataFromAgent> &);

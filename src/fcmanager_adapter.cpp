@@ -1,17 +1,22 @@
 #include "fcmanager_adapter.h"
 
-FCMAdapter::FCMAdapter(FCManager *parent):
+FcmAdapter::FcmAdapter(FCManager *parent):
     QDBusAbstractAdaptor(parent)
 {
     this->m_parentManager = parent;
 }
 
-QStringList FCMAdapter::getAllAgents()
+QStringList FcmAdapter::getAllAgents()
 {
     return m_parentManager->getAllAgents();
 }
 
-QString FCMAdapter::getAllAgentData(const QString &hostname)
+QString FcmAdapter::getAllAgentData(const QString &hostname)
 {
     return m_parentManager->getAllAgentData(hostname);
+}
+
+bool FcmAdapter::deleteAgent(const QString& hostname)
+{
+    return m_parentManager->deleteAgent(hostname);
 }
