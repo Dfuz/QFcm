@@ -27,7 +27,7 @@ const static QString insertAgent = "INSERT INTO Agents (HostName, Address, Statu
 
 const static QString updateAgent = "UPDATE Agents SET %1 WHERE HostName='%2';";
 
-const static QString deleteAgent = "DELETE FROM Agents WHERE HostName=%1;";
+const static QString deleteAgent = "DELETE FROM Agents WHERE HostName='%1';";
 
 const static QString insertAgentData = "INSERT INTO AgentsData (HostName, KeyData, Clock, Value) VALUES('%1', '%2', %3, '%4');"; //
 
