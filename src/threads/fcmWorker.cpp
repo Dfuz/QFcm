@@ -84,9 +84,9 @@ std::optional<FCM::AgentVariant> FcmWorker::performHandshake(std::shared_ptr<Uti
         {"compression", FCManager::getCompression()}
     };
 
-    auto response = _query->makeQuery()
-            .toSend(Utils::HandshakeMessage{payload})
+    auto response = _query->makeQueryRead()
             .toGet<Utils::Handshake>()
+            .toSend(Utils::HandshakeMessage{payload})
             .invoke();
 
     if (response)

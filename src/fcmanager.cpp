@@ -143,6 +143,7 @@ void FCManager::addToDataBaseAgent(const QStringList& list)
         {
             qInfo() << "Agent added successfully!";
             jsonList << parseSqlQuery(list.at(1));
+            qDebug() << jsonList;
         }
         else qWarning() << db.lastError().text();
     }
@@ -155,6 +156,7 @@ void FCManager::addToDataBaseAgent(const QStringList& list)
         else jsonList << parseSqlQuery(list.at(it));
     }
     db.commit();
+    qDebug() << jsonList;
     emit newData(jsonList);
 }
 
