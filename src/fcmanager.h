@@ -87,6 +87,7 @@ signals:
     //void gotData(const QPair<qint32, FCM::dataFromAgent> &);
     //void agentConnectedRetranslate(FCM::AgentVariant);
     void newData(const QStringList jsonList);
+    void newAgents(const QStringList jsonList);
 
 private slots:
     void addToDataBaseAgent(const QStringList& list);

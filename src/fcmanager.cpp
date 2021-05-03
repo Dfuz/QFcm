@@ -44,6 +44,7 @@ void FCManager::incomingConnection(qintptr socketDescriptor)
     connect(threadWorker, &FcmWorker::finished, threadWorker, &FcmWorker::deleteLater);
     connect(threadWorker, &FcmWorker::addAgentData, this, &FCManager::addToDataBaseAgent, Qt::ConnectionType::QueuedConnection);
     connect(this, &FCManager::newData, this->dbusAdapter.get(), &FcmAdapter::dataJsonList, Qt::ConnectionType::QueuedConnection);
+    connect(this, &FCManager::newAgents, this->dbusAdapter.get(), &FcmAdapter::agentsJsonList, Qt::ConnectionType::QueuedConnection);
 
     threadWorker->moveToThread(thread);
 
@@ -132,7 +133,7 @@ void FCManager::addToDataBaseAgent(const QStringList& list)
     if (!db.isOpen())
         return;
     QSqlQuery query;
-    QStringList jsonList;
+    QStringList jsonListData, jsonListAgent;
     qDebug() << "First query: " << list.at(0);
     qDebug() << "Second query: " << list.at(1);
     query.exec(list.at(0));
@@ -142,8 +143,8 @@ void FCManager::addToDataBaseAgent(const QStringList& list)
         if (query.exec(list.at(1)))
         {
             qInfo() << "Agent added successfully!";
-            jsonList << parseSqlQuery(list.at(1));
-            qDebug() << jsonList;
+            jsonListAgent << parseSqlQuery(list.at(1));
+            qDebug() << jsonListAgent;
         }
         else qWarning() << db.lastError().text();
     }
@@ -153,11 +154,12 @@ void FCManager::addToDataBaseAgent(const QStringList& list)
         qDebug() << it << " value: " << list.at(it);
         if (!query.exec(list.at(it)))
             qDebug() << "Something went wrong... (SQL insertion)";
-        else jsonList << parseSqlQuery(list.at(it));
+        else jsonListData << parseSqlQuery(list.at(it));
     }
     db.commit();
-    qDebug() << jsonList;
-    emit newData(jsonList);
+    qDebug() << jsonListData;
+    emit newAgents(jsonListAgent);
+    emit newData(jsonListData);
 }
 
 void FCManager::justExecQuery(const QString& query)
