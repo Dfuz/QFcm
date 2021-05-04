@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
     if (!parser.isSet("dbus"))
     {
         QDBusConnection connection = QDBusConnection::sessionBus();
-        if(!connection.registerObject("/", &server)){
+        if(!connection.registerObject("/ru/vimpel/fcmanager", &server)){
             qWarning() << "Can't register object" << QDBusConnection::sessionBus().lastError().message();
         }
         else if (!connection.registerService(SERVICE_NAME)){
