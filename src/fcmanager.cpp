@@ -15,7 +15,7 @@ bool FCManager::startServer()
     {
         qInfo() << QTime::currentTime().toString(Qt::ISODateWithMs) << "Не удалось запустить сервер";
         qInfo() << "Адрес:" << ipAddress.toString().trimmed().remove('\"') << "порт:" << port << "...";
-        qInfo() << "Ошибка:" << this->errorString() << Qt::flush;
+        qInfo() << "Ошибка:" << this->errorString();
         return false;
     }
     else
@@ -65,10 +65,10 @@ inline const QString FCManager::parseSqlQuery(const QString &query) const
         if (!match_it.hasNext())
             return {};
 
-        auto keyList = match_it.next().captured(0).remove(QRegExp("[( ')]")).split(QLatin1Char(','), Qt::SkipEmptyParts);
+        auto keyList = match_it.next().captured(0).remove(QRegExp("[( ')]")).split(QLatin1Char(','), QString::SkipEmptyParts);
 
         auto valueList = match_it.hasNext() ?
-                match_it.next().captured(0).remove(QRegExp("[( ')]")).split(QLatin1Char(','), Qt::SkipEmptyParts) : QStringList();
+                match_it.next().captured(0).remove(QRegExp("[( ')]")).split(QLatin1Char(','), QString::SkipEmptyParts) : QStringList();
 
         if (keyList.size() != valueList.size())
             return {};
@@ -120,7 +120,7 @@ bool FCManager::initDBConnection()
     }
     else
     {
-        foreach(QString queryStr, DataBase::createDataBase.split(";", Qt::SkipEmptyParts))
+        foreach(QString queryStr, DataBase::createDataBase.split(";", QString::SkipEmptyParts))
             db.exec(queryStr);
         db.exec(DataBase::foreignKeysOn);
         db.commit();
@@ -169,7 +169,7 @@ void FCManager::justExecQuery(const QString& query)
 
     QSqlQuery sqlQuery;
     if (!sqlQuery.exec(query))
-        qDebug() << "SQL query ended with an error" << db.lastError().text() << Qt::flush;
+        qDebug() << "SQL query ended with an error" << db.lastError().text();
 }
 
 bool FCManager::deleteAgent(const QString& hostName)
