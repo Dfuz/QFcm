@@ -158,6 +158,8 @@ void FCManager::addToDataBaseAgent(const QStringList& list)
     }
     db.commit();
     qDebug() << jsonListData;
+    jsonListAgent.removeAll(QString(""));
+    jsonListData.removeAll(QString(""));
     emit newAgents(jsonListAgent);
     emit newData(jsonListData);
 }
