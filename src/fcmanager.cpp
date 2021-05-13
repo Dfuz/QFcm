@@ -53,7 +53,7 @@ void FCManager::incomingConnection(qintptr socketDescriptor)
     return;
 }
 
-inline QString FCManager::parseSqlQuery(const QString &query)
+inline const QString FCManager::parseSqlQuery(const QString &query) const
 {
     QVariantMap jsonMap;
     if (query.contains("INSERT", Qt::CaseInsensitive))
@@ -65,10 +65,10 @@ inline QString FCManager::parseSqlQuery(const QString &query)
         if (!match_it.hasNext())
             return {};
 
-        auto keyList = match_it.next().captured(0).remove(QRegExp("[( ')]")).split(QLatin1Char(' '), QString::SkipEmptyParts);
+        auto keyList = match_it.next().captured(0).remove(QRegExp("[( ')]")).split(QLatin1Char(' '), Qt::SkipEmptyParts);
 
         auto valueList = match_it.hasNext() ?
-                match_it.next().captured(0).remove(QRegExp("[( ')]")).split(QLatin1Char(' '), QString::SkipEmptyParts) : QStringList();
+                match_it.next().captured(0).remove(QRegExp("[( ')]")).split(QLatin1Char(' '), Qt::SkipEmptyParts) : QStringList();
 
         if (keyList.size() != valueList.size())
             return {};
