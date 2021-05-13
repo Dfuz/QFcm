@@ -65,13 +65,14 @@ inline const QString FCManager::parseSqlQuery(const QString &query) const
         if (!match_it.hasNext())
             return {};
 
-        auto keyList = match_it.next().captured(0).remove(QRegExp("[(')]")).split(QLatin1Char(' '), QString::SkipEmptyParts);
+        auto keyList = match_it.next().captured(0).remove(QRegExp("[(')]")).split(QString(", "), QString::SkipEmptyParts);
 
         auto valueList = match_it.hasNext() ?
-                match_it.next().captured(0).remove(QRegExp("[(')]")).split(QLatin1Char(' '), QString::SkipEmptyParts) : QStringList();
+                match_it.next().captured(0).remove(QRegExp("[(')]")).split(QString(", "), QString::SkipEmptyParts) : QStringList();
 
         if (keyList.size() != valueList.size())
             return {};
+
         for (int i = 0; i < keyList.size(); ++i)
             jsonMap.insert(keyList[i], valueList[i]);
     }

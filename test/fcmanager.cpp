@@ -154,26 +154,35 @@ private slots:
         QVERIFY(thread.result());
     }
 
-//    void testParseSql()
-//    {
-//        auto startTime = std::chrono::high_resolution_clock::now();
-//        auto query = DataBase::insertAgent.arg("PC_1", "254.234.234.2:36500")
-//                             .arg(1)
-//                             .arg("234:432:452");
+    void testParseSql()
+    {
+        auto startTime = std::chrono::high_resolution_clock::now();
+        auto query = DataBase::insertAgent.arg("PC_1", "254.234.234.2:36500")
+                             .arg(1)
+                             .arg("234:432:452");
+        FCManager manager;
 
-//        auto endTime = std::chrono::high_resolution_clock::now();
-//        auto durationTime = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count();
-//        qDebug() << "microseconds spent: " << durationTime;
+        auto endTime = std::chrono::high_resolution_clock::now();
+        auto durationTime = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count();
+        qDebug() << "microseconds spent: " << durationTime;
 
-//        qDebug() << "Query string: " << query;
-//        auto jsonString = FCManager::parseSqlQuery(query);
-//        qDebug() << "Json string: " << jsonString;
-//        QVERIFY(!jsonString.isEmpty());
+        qDebug() << "Query string: " << query;
+        auto jsonString = manager.parseSqlQuery(query);
+        qDebug() << "Json string: " << jsonString;
+        QVERIFY(!jsonString.isEmpty());
 
-//        auto jsonDoc = QJsonDocument::fromJson(jsonString.toUtf8());
-//        qDebug() << jsonDoc.object().toVariantMap();
-//        QVERIFY(jsonDoc.isObject());
-//    }
+        auto jsonDoc = QJsonDocument::fromJson(jsonString.toUtf8());
+        qDebug() << jsonDoc.object().toVariantMap();
+        QVERIFY(jsonDoc.isObject());
+
+        query = "INSERT INTO AgentsData (HostName, KeyData, Clock, Value) VALUES('SimpleAgent', 'CurrentMultiCoreUsage', 1620945098, '8.59,7.59,9.52,8.84,7.82,9.12,8.59,9.63');";
+        jsonString = manager.parseSqlQuery(query);
+        qDebug() << "Json string: " << jsonString;
+        QVERIFY(!jsonString.isEmpty());
+        jsonDoc = QJsonDocument::fromJson(jsonString.toUtf8());
+        qDebug() << jsonDoc.object().toVariantMap();
+        QVERIFY(jsonDoc.isObject());
+    }
 
     void testHandhake()
     {
