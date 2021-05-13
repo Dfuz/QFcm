@@ -53,7 +53,7 @@ void FCManager::incomingConnection(qintptr socketDescriptor)
     return;
 }
 
-inline QString FCManager::parseSqlQuery(const QString &query)
+inline const QString FCManager::parseSqlQuery(const QString &query) const
 {
     QVariantMap jsonMap;
     if (query.contains("INSERT", Qt::CaseInsensitive))
