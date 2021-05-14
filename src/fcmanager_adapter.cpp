@@ -4,6 +4,7 @@ FcmAdapter::FcmAdapter(FCManager *parent):
     QDBusAbstractAdaptor(parent)
 {
     this->m_parentManager = parent;
+    setAutoRelaySignals(true);
 }
 
 QStringList FcmAdapter::getAllAgents()
