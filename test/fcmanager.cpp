@@ -183,6 +183,15 @@ private slots:
         jsonDoc = QJsonDocument::fromJson(jsonString.toUtf8());
         qDebug() << jsonDoc.object().toVariantMap();
         QVERIFY(jsonDoc.isObject());
+
+
+        query = "INSERT INTO Agents (HostName, Address, Status, MAC) VALUES('SimpleAgent', '192.168.3.4', 1, '254.234.234.2:36500');";
+        jsonString = manager.parseSqlQuery(query);
+        qDebug() << "Json string: " << jsonString;
+        QVERIFY(!jsonString.isEmpty());
+        jsonDoc = QJsonDocument::fromJson(jsonString.toUtf8());
+        qDebug() << jsonDoc.object().toVariantMap();
+        QVERIFY(jsonDoc.isObject());
     }
 
     void testHandhake()
