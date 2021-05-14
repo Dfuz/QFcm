@@ -43,7 +43,7 @@ class FCManager final : public QTcpServer
 
 public:
     explicit FCManager(QObject *parent = 0);
-    void readConfig(QString settings_path = "conf.json");
+    bool readConfig(QString settings_path = "conf.json");
     bool initDBConnection();
     bool startServer();
     friend class fcmanager_tests;
@@ -69,23 +69,22 @@ protected:
     void incomingConnection(qintptr socketDescriptor);
 
 private:
-    QHostAddress ipAddress{QHostAddress::AnyIPv4};
+    // методы
+    bool deleteAgent(const QString& hostName);
+    const QString parseSqlQuery(const QString& query) const;
+
+    // поля
+    QHostAddress ipAddress{QHostAddress::LocalHost};
     std::unique_ptr<FcmAdapter> dbusAdapter;
-    //QAtomicInteger<int> currNumberOfAgents{0};
     int maxNumberOfAgents{2};
     inline static QString dataBaseName{"QFcm.db"};
     inline static QString hostName;
     inline static bool dataBaseState{false};
     inline static int compression{0};
-    const QString parseSqlQuery(const QString& query) const;
     QSqlDatabase db;
     int port{0};
 
-    bool deleteAgent(const QString& hostName);
-
 signals:
-    //void gotData(const QPair<qint32, FCM::dataFromAgent> &);
-    //void agentConnectedRetranslate(FCM::AgentVariant);
     void newData(const QStringList jsonList);
     void newAgents(const QStringList jsonList);
 

@@ -78,7 +78,7 @@ inline const QString FCManager::parseSqlQuery(const QString &query) const
     return QJsonDocument(QJsonObject::fromVariantMap(jsonMap)).toJson(QJsonDocument::Compact);
 }
 
-void FCManager::readConfig(QString settings_path)
+bool FCManager::readConfig(QString settings_path)
 {
     QSettings settings(settings_path, Utils::JsonFormat);
 
@@ -86,6 +86,7 @@ void FCManager::readConfig(QString settings_path)
 
     if (!settings.value("port").isNull())
         port = settings.value("port").toInt();
+    else return false;
 
     if (!settings.value("address").isNull())
         ipAddress = QHostAddress{settings.value("address").toString()};
@@ -97,13 +98,15 @@ void FCManager::readConfig(QString settings_path)
         compression = settings.value("compression").toInt();
 
     // если имя хоста не задано, то в качестве имени будет взят хэш от мак-адреса
-    if (settings.value("HostName").isNull())
+    if (settings.value("hostname").isNull())
         hostName =  QCryptographicHash::hash(Utils::getMacAddress().toUtf8(),
                                               QCryptographicHash::Md4).toBase64();
-    else hostName = settings.value("HostName").toString();
+    else hostName = settings.value("hostname").toString();
 
     if (!settings.value("databasefile").isNull())
         dataBaseName = settings.value("databasefile").toString();
+
+    return true;
 }
 
 bool FCManager::initDBConnection()

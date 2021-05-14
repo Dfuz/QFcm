@@ -11,7 +11,7 @@
 #include "common/querybuilder.h"
 #include "threads/fcmWorker.h"
 
-class fcmanager_tests: public QObject
+class fcmanager_tests : public QObject
 {
     Q_OBJECT
 private slots:
@@ -23,17 +23,19 @@ private slots:
 
     void settingsNoFile()
     {
-        QSKIP("До лучших времен...");
-        if (!QFile::exists("conf.json")) QFile::remove("conf.json");
+        if (QFile::exists("conf.json")) QFile::rename("conf.json", "config.json");
 
-        FCManager manager{};
-        manager.readConfig();
+        FCManager manager;
 
-        QVERIFY(QFile::exists("conf.json"));
+        QEXPECT_FAIL("", "As should be", Continue);
+        QVERIFY(manager.readConfig());
 
+        qDebug() << "manager.ipAddress = " << manager.ipAddress << " | QHostAddress::LocalHost = " << QHostAddress{QHostAddress::LocalHost};
         QCOMPARE(manager.ipAddress, QHostAddress{QHostAddress::LocalHost});
-        QCOMPARE(manager.port, 1234);
-        QCOMPARE(manager.maxNumberOfAgents, 4);
+        qDebug() << "manager.port = " << manager.port;
+        QCOMPARE(manager.port, 0);
+        QCOMPARE(manager.maxNumberOfAgents, 2);
+        QFile::rename("config.json", "conf.json");
     }
 
     void settingsFile()
@@ -41,7 +43,7 @@ private slots:
         QFile file{"conf.json"};
         file.open(QIODevice::Truncate | QIODevice::WriteOnly);
 
-        const auto DATA = R"({"address":"0.0.0.0", "max_agents":10, "port":4000, "polling_rate":"1m1s"})";
+        const auto DATA = R"({"hostname":"Simple Server","address":"0.0.0.0","max_agents":10,"port":4000,"databasefile": "nothing.db", "compression":4})";
         QVERIFY(file.write(DATA) != -1);
         file.close();
 
@@ -51,6 +53,9 @@ private slots:
         QCOMPARE(manager.ipAddress, QHostAddress{QHostAddress::AnyIPv4});
         QCOMPARE(manager.port, 4000);
         QCOMPARE(manager.maxNumberOfAgents, 10);
+        QCOMPARE(manager.dataBaseName, "nothing.db");
+        QCOMPARE(manager.compression, 4);
+        QCOMPARE(manager.hostName, "Simple Server");
 
         QFile::remove(file.fileName());
     }
